@@ -277,7 +277,8 @@ package main;
 # use Test::Driver;
 
 my $suite=Test::Driver->new([
-	[ "g4tool", "g4tool/basic.sh" ]
+	[ "G4-Tool", "g4tool/basic.sh", "g4tool/extended.sh" ]
+	# , "Tiff-2-Bacon", "tifftobacon/basic.sh" ]
 	]);
 exit $suite->Run("test.pl",\@ARGV);
 

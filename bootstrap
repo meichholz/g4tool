@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $Id: bootstrap,v 1.1 2002/02/05 16:26:16 eichholz Exp $
+# $Id: bootstrap,v 1.2 2002/02/07 21:47:45 eichholz Exp $
 
 test Makefile && make distclean
 
@@ -25,3 +25,4 @@ test "$1" = "-b" || exit 0
 
 ./configure
 make
+make check

@@ -1,17 +1,94 @@
-.\" $Id: g4tool.1,v 1.1 2002/02/06 14:44:56 eichholz Exp $
+.\" $Id: g4tool.1,v 1.2 2002/02/07 21:47:45 eichholz Exp $
 .TH g4tool 1 "FEBRUARY 2002" Linux "User Manuals"
 .SH NAME
 g4tool \- decode G4 files to other formats
 
 .SH SYNOPSIS
-
-
+g4tool [ \fB-o\fR \fIformat\fR ] [ \fB-w\fR \fIxpixels\fR \fB-h\fR \fIypixels\fR ] [ \fB-b\fR ] [ \fB-P\fR \fIpclopt\fR ] [ \fB-c\fR ] [ \fB-C\fR ] [ \fB-M\fR ] [ \fB-W\fR \fIwarns\fR ] [ \fB-r\fR ]
+.nf
+g4tool -V
+g4tool -H
+g4tool -o pcl -b < doc.bacon > doc.pcl
+g4tool -w 600 -h 600 < doc.600x600.g4 > doc.pbm
 
 .SH DESCRIPTION
 
-.SH OPTIONS
+\fBg4tool\fR is a tool designed for decoding a graphics file according
+to the ITU T.4 specification (aka G4). It reads a file from standard
+input and writes the result to standard output.
 
-.SH BUGS
-Eh?
+Input can be raw a T.4 stream. Then the dimensions must be given with
+the \fB\-w\fR and \fB\-h\fR. The dimensions must really fit, because
+elseway the T.4-decoder will stumble over unknown symbols. That is
+because the encoding is not context free.
+
+.SH OPTIONS
+.IP \fB\-b\fR
+decode BACON header
+
+.IP \fB\-c\fR
+clip and center EPx/WO/DEx page to fit into A4. This is a really hand
+optimized balance for a special application.
+
+.IP \fB\-C\fR
+Clip and center simple. When the original page is greater than the
+printable area (defaults to a HP Laserjet 4 PCL printable area for A4
+paper), the margin is cut simply around the center. This is the
+preferred mode for most applications.
+
+.IP "\fB\-d\fR \fIwhat\fR"
+Set debugging on STDERR on. Available debugging modes are \fBp\fR for
+pcl, \fBv\fR for normal verbosing, \fBc\fR for codecheck or \fBe\fR
+for encoder debugging. Only one debug flag can be activated per
+\fB-d\fR option.
+
+.IP "\fB\-h\fR \fIrows\fR"
+Specify number of \fIrows\fR rows of a raw T.4 input file.
+
+.IP \fB\-H\fR
+Give a help page like this.
+
+.IP \fB\-M\fR
+Clip page absolute (suppress border)
+
+.IP "\fB\-o\fR \fIformat\fR"
+Specify encoder format. Available formats are \fBp\fRcl, raw-\fBG\fR4,
+tiff-\fBg\fR4 or \fBt\fRiff. Default is PBM.
+
+.IP \fB\-P\fR : Use special PCL codes and hacks. Available are \fBP\fR\fIdpi\fR for PCL resolution \fIdpi\fR (default is 300), \fBl\fR for dedicated landscape encoding and \fBp\fR for portrait encoding.
+
+.IP \fB\-r\fR
+Rotate page before encoding. This option needs a large printing
+framebuffer (1 Byte per 8 Pixel).
+
+.IP "\fB\-s\fR \fIhsize\fR"
+Skip \fIhsize\fR header bytes before processing raw T.4 input
+stream. Don't forget to specify real with and height with the \fB-w\fR
+and \fB-h\fR options.
+
+.IP \fB\-V\fR
+Request version string
+
+.IP "\fB\-w\fR \fIwidth\fR"
+Specify the number of columns in the raw T.4 input file.
+
+.IP "\fB\-W\fR \fIwarnopt\fR"
+Change warning behaviour. With warnoption \fIl\fRine, the check of
+line count is deactivated. Some BACON encoders seem to disagree about
+the counting method od rows and specify one row too much. So, option
+\fB-W l\fR doesn't bug You.
+
+.SH TODO
+
+The program really needs to large buffers, mainly for a complete page
+frame buffer. It is pretty fast, but has a big memory footprint at
+least for image rotation.
+
+The string-to-table-translation is not really efficient for program
+startup, too. Perhaps it can be done at compile time. This approach
+nevertheless was good for debugging the decoder and encoder.
+
 .SH AUTHOR
+.nf
 Marian Eichholz <eichholz@computer.org>
+Oliver Dunkelberg <oliver.dunkelberg@freenet.de>
