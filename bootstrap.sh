@@ -1,10 +1,12 @@
 #!/bin/sh
 
-# $Id: bootstrap.sh,v 1.2 2002/01/07 00:30:21 eichholz Exp $
+# $Id: bootstrap.sh,v 1.3 2002/02/03 22:04:53 eichholz Exp $
 
 test Makefile && make distclean
 
 rm aux/*
+rm *.tar.gz
+rm -rf g4tool-*/
 
 for PAT in "*~" stamp-h.in aclocal.m4 Makefile Makefile.in configure "t.*" "tmp.*" "*.bak" ; do
   find -name "$PAT" -exec rm "{}" \;

@@ -60,27 +60,39 @@ POST_UNINSTALL = :
 CC = @CC@
 MAKEINFO = @MAKEINFO@
 PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
 TIFF_LIB = @TIFF_LIB@
 VERSION = @VERSION@
 
 bin_PROGRAMS = g4tool tiff2bacon
-g4tool_SOURCES = main.c encode.c decode.c pcl.c tiff.c tables.c 
+lib_LIBRARIES = libg4tool.a
+
+g4tool_SOURCES = main.c global.h
+# g4tool_HEADERS=global.h
+g4tool_LDADD = libg4tool.a
+
+libg4tool_a_SOURCES = encode.c decode.c pcl.c tiff.c tables.c 
+# libg4tool_a_HEADERS=
+
 tiff2bacon_SOURCES = tiff2bacon.c
 tiff2bacon_LDADD = @TIFF_LIB@
-AM_CFLAGS = 
 mkinstalldirs = $(SHELL) $(top_srcdir)/aux/mkinstalldirs
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES = 
-PROGRAMS =  $(bin_PROGRAMS)
+LIBRARIES =  $(lib_LIBRARIES)
 
 
 DEFS = @DEFS@ -I. -I$(srcdir) -I.
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-g4tool_OBJECTS =  main.o encode.o decode.o pcl.o tiff.o tables.o
-g4tool_LDADD = $(LDADD)
-g4tool_DEPENDENCIES = 
+libg4tool_a_LIBADD = 
+libg4tool_a_OBJECTS =  encode.o decode.o pcl.o tiff.o tables.o
+AR = ar
+PROGRAMS =  $(bin_PROGRAMS)
+
+g4tool_OBJECTS =  main.o
+g4tool_DEPENDENCIES =  libg4tool.a
 g4tool_LDFLAGS = 
 tiff2bacon_OBJECTS =  tiff2bacon.o
 tiff2bacon_DEPENDENCIES = 
@@ -98,8 +110,8 @@ TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/decode.P .deps/encode.P .deps/main.P .deps/pcl.P \
 .deps/tables.P .deps/tiff.P .deps/tiff2bacon.P
-SOURCES = $(g4tool_SOURCES) $(tiff2bacon_SOURCES)
-OBJECTS = $(g4tool_OBJECTS) $(tiff2bacon_OBJECTS)
+SOURCES = $(libg4tool_a_SOURCES) $(g4tool_SOURCES) $(tiff2bacon_SOURCES)
+OBJECTS = $(libg4tool_a_OBJECTS) $(g4tool_OBJECTS) $(tiff2bacon_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -140,6 +152,59 @@ distclean-hdr:
 
 maintainer-clean-hdr:
 
+mostlyclean-libLIBRARIES:
+
+clean-libLIBRARIES:
+	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+
+distclean-libLIBRARIES:
+
+maintainer-clean-libLIBRARIES:
+
+install-libLIBRARIES: $(lib_LIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
+	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	list='$(lib_LIBRARIES)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(libdir)/$$p; \
+	done
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+libg4tool.a: $(libg4tool_a_OBJECTS) $(libg4tool_a_DEPENDENCIES)
+	-rm -f libg4tool.a
+	$(AR) cru libg4tool.a $(libg4tool_a_OBJECTS) $(libg4tool_a_LIBADD)
+	$(RANLIB) libg4tool.a
+
 mostlyclean-binPROGRAMS:
 
 clean-binPROGRAMS:
@@ -164,22 +229,6 @@ uninstall-binPROGRAMS:
 	list='$(bin_PROGRAMS)'; for p in $$list; do \
 	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	done
-
-.s.o:
-	$(COMPILE) -c $<
-
-.S.o:
-	$(COMPILE) -c $<
-
-mostlyclean-compile:
-	-rm -f *.o core *.core
-
-clean-compile:
-
-distclean-compile:
-	-rm -f *.tab.c
-
-maintainer-clean-compile:
 
 g4tool: $(g4tool_OBJECTS) $(g4tool_DEPENDENCIES)
 	@rm -f g4tool
@@ -281,7 +330,7 @@ installcheck: installcheck-am
 all-recursive-am: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
-install-exec-am: install-binPROGRAMS
+install-exec-am: install-libLIBRARIES install-binPROGRAMS
 install-exec: install-exec-am
 
 install-data-am:
@@ -290,14 +339,14 @@ install-data: install-data-am
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-am
-uninstall-am: uninstall-binPROGRAMS
+uninstall-am: uninstall-libLIBRARIES uninstall-binPROGRAMS
 uninstall: uninstall-am
-all-am: Makefile $(PROGRAMS) config.h
+all-am: Makefile $(LIBRARIES) $(PROGRAMS) config.h
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
 installdirs:
-	$(mkinstalldirs)  $(DESTDIR)$(bindir)
+	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(bindir)
 
 
 mostlyclean-generic:
@@ -309,45 +358,50 @@ distclean-generic:
 	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
 
 maintainer-clean-generic:
-mostlyclean-am:  mostlyclean-hdr mostlyclean-binPROGRAMS \
-		mostlyclean-compile mostlyclean-tags mostlyclean-depend \
-		mostlyclean-generic
+mostlyclean-am:  mostlyclean-hdr mostlyclean-libLIBRARIES \
+		mostlyclean-compile mostlyclean-binPROGRAMS \
+		mostlyclean-tags mostlyclean-depend mostlyclean-generic
 
 mostlyclean: mostlyclean-am
 
-clean-am:  clean-hdr clean-binPROGRAMS clean-compile clean-tags \
-		clean-depend clean-generic mostlyclean-am
+clean-am:  clean-hdr clean-libLIBRARIES clean-compile clean-binPROGRAMS \
+		clean-tags clean-depend clean-generic mostlyclean-am
 
 clean: clean-am
 
-distclean-am:  distclean-hdr distclean-binPROGRAMS distclean-compile \
-		distclean-tags distclean-depend distclean-generic \
-		clean-am
+distclean-am:  distclean-hdr distclean-libLIBRARIES distclean-compile \
+		distclean-binPROGRAMS distclean-tags distclean-depend \
+		distclean-generic clean-am
 
 distclean: distclean-am
 
-maintainer-clean-am:  maintainer-clean-hdr maintainer-clean-binPROGRAMS \
-		maintainer-clean-compile maintainer-clean-tags \
-		maintainer-clean-depend maintainer-clean-generic \
-		distclean-am
+maintainer-clean-am:  maintainer-clean-hdr maintainer-clean-libLIBRARIES \
+		maintainer-clean-compile maintainer-clean-binPROGRAMS \
+		maintainer-clean-tags maintainer-clean-depend \
+		maintainer-clean-generic distclean-am
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
 maintainer-clean: maintainer-clean-am
 
 .PHONY: mostlyclean-hdr distclean-hdr clean-hdr maintainer-clean-hdr \
-mostlyclean-binPROGRAMS distclean-binPROGRAMS clean-binPROGRAMS \
-maintainer-clean-binPROGRAMS uninstall-binPROGRAMS install-binPROGRAMS \
-mostlyclean-compile distclean-compile clean-compile \
-maintainer-clean-compile tags mostlyclean-tags distclean-tags \
-clean-tags maintainer-clean-tags distdir mostlyclean-depend \
-distclean-depend clean-depend maintainer-clean-depend info-am info \
-dvi-am dvi check check-am installcheck-am installcheck all-recursive-am \
-install-exec-am install-exec install-data-am install-data install-am \
-install uninstall-am uninstall all-redirect all-am all installdirs \
+mostlyclean-libLIBRARIES distclean-libLIBRARIES clean-libLIBRARIES \
+maintainer-clean-libLIBRARIES uninstall-libLIBRARIES \
+install-libLIBRARIES mostlyclean-compile distclean-compile \
+clean-compile maintainer-clean-compile mostlyclean-binPROGRAMS \
+distclean-binPROGRAMS clean-binPROGRAMS maintainer-clean-binPROGRAMS \
+uninstall-binPROGRAMS install-binPROGRAMS tags mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir \
+mostlyclean-depend distclean-depend clean-depend \
+maintainer-clean-depend info-am info dvi-am dvi check check-am \
+installcheck-am installcheck all-recursive-am install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs \
 mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
+
+# AM_CFLAGS=
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
