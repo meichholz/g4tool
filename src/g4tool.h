@@ -4,12 +4,31 @@
 typedef int     G4T_BOOL;
 typedef int     G4T_RC;
 
-#define		G4T_CX_MAX	5000
-#define		G4T_CY_MAX	8000
+#define	G4T_CX_MAX	5000
+#define	G4T_CY_MAX	8000
 
-#define         G4T_EOK         0
-#define         G4T_EGENERAL    1
+#define G4T_EOK         0
+#define G4T_EGENERAL    1
 
+#define	G4_OFMT_PBM	1
+#define	G4_OFMT_TIFF	2
+#define	G4_OFMT_PCL	3
+#define	G4_OFMT_G4	4
+#define	G4_OFMT_RAWG4	5
+
+#define	G4_CLIP_NONE		0
+#define G4_CLIP_CENTER_SIMPLE	1
+#define G4_CLIP_CENTER_DOC	2
+#define G4_CLIP_FIX_BORDERS	3
+
+#define	G4_CX_MAX_A4_OFFICIAL	2380
+#define	G4_CY_MAX_A4_OFFICIAL	3407
+
+/* de facto area for Laserjet 1200 */
+#define	G4_CX_MAX_A4	2498
+#define	G4_CY_MAX_A4	3508
+
+#define	G4_PCL_CCHBUF	10000
 
 /* ====================== function prototypes =========================== */
 

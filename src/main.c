@@ -44,6 +44,7 @@ static void InitGlobal(THIS)
   this->cyPaper=G4T_CY_MAX;
   this->lcchFullPageLine=(G4T_CX_MAX+7L)/8L;
   this->nPCLResolution=300;
+  this->bWriteOrientation=TRUE; /* this is mainly fpr compatibility */
 #ifdef SUPPORT_FULL_PAGE
   this->lcFullPageLines=G4T_CY_MAX;
 #else
@@ -91,7 +92,7 @@ static int GetOptions(THIS,
  {
   char chOpt;
   this->bFullPage=FALSE;
-  this->nFileFormat=OFMT_PBM;
+  this->nFileFormat=G4_OFMT_PBM;
   this->bLandscape=FALSE;
   this->bNoLineWarnings=FALSE;
   this->bDebugShowRunComp=FALSE;
@@ -99,7 +100,7 @@ static int GetOptions(THIS,
   this->bDebugEncoder=FALSE;
   this->bBacon=FALSE;
   this->bDebugPCL=FALSE;
-  this->nClipType=CLIP_NONE;
+  this->nClipType=G4_CLIP_NONE;
   this->bRotate=FALSE;
   this->bVerbose=FALSE;
   this->bNoCheckEOL=FALSE;
@@ -126,11 +127,11 @@ static int GetOptions(THIS,
       case 'o': switch (*optarg)
                  {
                    case 'p':	this->bFullPage=TRUE;
-                   		this->nFileFormat=OFMT_PCL;
+                   		this->nFileFormat=G4_OFMT_PCL;
                    		break;
-                   case 'g':	this->nFileFormat=OFMT_G4; break;
-                   case 'G':	this->nFileFormat=OFMT_RAWG4; break;
-                   case 't':	this->nFileFormat=OFMT_TIFF; break;
+                   case 'g':	this->nFileFormat=G4_OFMT_G4; break;
+                   case 'G':	this->nFileFormat=G4_OFMT_RAWG4; break;
+                   case 't':	this->nFileFormat=G4_OFMT_TIFF; break;
                    default:	fprintf(stderr,
                    			"\nunknown file format %s\n",optarg);
                    		return 1;
@@ -153,9 +154,9 @@ static int GetOptions(THIS,
       case 'w': this->cxPaper=atoi(optarg); break;
       case 'h': this->cyPaper=atoi(optarg); break;
       case 'b': this->bBacon=TRUE; break;
-      case 'c': this->nClipType=CLIP_CENTER_DOC; break;
-      case 'C': this->nClipType=CLIP_CENTER_SIMPLE; break;
-      case 'M': this->nClipType=CLIP_FIX_BORDERS; break;
+      case 'c': this->nClipType=G4_CLIP_CENTER_DOC; break;
+      case 'C': this->nClipType=G4_CLIP_CENTER_SIMPLE; break;
+      case 'M': this->nClipType=G4_CLIP_FIX_BORDERS; break;
       case 's': *pcchHeader=atoi(optarg); break;
       case 'r': this->bRotate=this->bFullPage=TRUE; break;
       case 'V': printf("g4tool v" VERSION "\n"); exit(0);

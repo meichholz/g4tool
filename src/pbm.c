@@ -21,7 +21,7 @@ G4T_BOOL g4tFlushLinePBM(THIS,FILE *f)
   int	i;
   int	uch;
   int	cBits=0;
-  for (i=1; i<=this->cxPaper; i++)
+  for (i=1; i<=this->cxPaperOut; i++)
    {
     G4T_BOOL bBit=this->abitWork[i];
     uch=(uch<<1) | bBit;
@@ -56,12 +56,12 @@ G4T_BOOL g4tFlushLine(THIS, FILE *f)
  {
   switch (this->nFileFormat)
    {
-    case OFMT_G4:
-    case OFMT_RAWG4:
+    case G4_OFMT_G4:
+    case G4_OFMT_RAWG4:
     		return g4tFlushLineG4(this,f);
-    case OFMT_PBM:
+    case G4_OFMT_PBM:
     		return g4tFlushLinePBM(this,f);
-    case OFMT_PCL:
+    case G4_OFMT_PCL:
      		if (this->iLine<this->cyPaperOut+1+this->yPaperOut)
       		  return g4tFlushLinePCL(this,f);
    }
@@ -72,11 +72,11 @@ G4T_BOOL g4tWriteHeader(THIS, FILE *f)
  { 
   switch (this->nFileFormat)
    {
-    case OFMT_G4:	return g4tWriteHeadG4(this,f,TRUE);
-    case OFMT_RAWG4:	return g4tWriteHeadG4(this,f,FALSE);
-    case OFMT_PBM:	fprintf(f,"P4\n%d %d\n",this->cxPaper,this->cyPaper);
+    case G4_OFMT_G4:	return g4tWriteHeadG4(this,f,TRUE);
+    case G4_OFMT_RAWG4:	return g4tWriteHeadG4(this,f,FALSE);
+    case G4_OFMT_PBM:	fprintf(f,"P4\n%d %d\n",this->cxPaper,this->cyPaper);
     			return TRUE;
-    case OFMT_PCL:	return g4tWriteHeadPCL(this,f);
+    case G4_OFMT_PCL:	return g4tWriteHeadPCL(this,f);
    }
   return FALSE;
  }
@@ -85,10 +85,10 @@ G4T_BOOL g4tClosePage(THIS, FILE *f)
  {
   switch (this->nFileFormat)
    {
-    case OFMT_G4:	return g4tClosePageG4(this,f,TRUE);
-    case OFMT_RAWG4:	return g4tClosePageG4(this,f,FALSE);
-    case OFMT_PBM:	return TRUE;
-    case OFMT_PCL:	return g4tDumpPagePCL(this,f);
+    case G4_OFMT_G4:	return g4tClosePageG4(this,f,TRUE);
+    case G4_OFMT_RAWG4:	return g4tClosePageG4(this,f,FALSE);
+    case G4_OFMT_PBM:	return TRUE;
+    case G4_OFMT_PCL:	return g4tDumpPagePCL(this,f);
    }
   return FALSE;
  }
@@ -99,6 +99,8 @@ G4T_BOOL g4tClosePage(THIS, FILE *f)
  ******************************************************************
  */
 
+#define G4_ABS(a) ((int)(((long)(this->nPCLResolution)*a)/300L))
+
 void g4tCenterPage(THIS)
  {
   this->cxPaperOut=this->cxPaper;
@@ -107,34 +109,27 @@ void g4tCenterPage(THIS)
   this->yPaperOut=0;
   switch (this->nClipType)
    {
-    case CLIP_NONE: break;
-    case CLIP_CENTER_DOC:
-    case CLIP_CENTER_SIMPLE:
+    case G4_CLIP_NONE: break;
+    case G4_CLIP_CENTER_DOC:
+    case G4_CLIP_CENTER_SIMPLE:
         /**
         Notfalls muß die Seite zentriert werden. Das geschieht mit etwas
         Augenmaß, da die Dokumente ihre Tücken haben, bes. der Barcode
         an DE-Schriften.
         */
-        if (this->cxPaper>CX_MAX_A4)
+        if (this->cxPaper>G4_ABS(G4_CX_MAX_A4))
          {
-          this->cxPaperOut=CX_MAX_A4;
-#ifdef OLD_DOC_CLIP_FORMULA
+          this->cxPaperOut=G4_ABS(G4_CX_MAX_A4);
           this->xPaperOut=(this->cxPaper-this->cxPaperOut)*100
-	    /(200-66*(this->nClipType==CLIP_CENTER_SIMPLE));
-/*            ^^^^
-              these are 134 for "simple"
-*/
-#else
-          this->xPaperOut=(this->cxPaper-this->cxPaperOut)*100/(150-16*(this->nClipType==CLIP_CENTER_SIMPLE));
-#endif
+	    /(150-16*(this->nClipType==G4_CLIP_CENTER_SIMPLE));
           this->xPaperOut-=(this->xPaperOut % 8);
           if (this->bVerbose)
             fprintf(stderr,"limiting X to %d / %d pixels\n",
             	this->xPaperOut,this->cxPaperOut);
          }
-        if (this->cyPaper>CY_MAX_A4)
+        if (this->cyPaper>G4_ABS(G4_CY_MAX_A4))
          {
-          this->cyPaperOut=CY_MAX_A4;
+          this->cyPaperOut=G4_ABS(G4_CY_MAX_A4);
           this->yPaperOut=(this->cyPaper-this->cyPaperOut)/3;
           /* this->yPaperOut-=(this->yPaperOut % 8); */
           if (this->bVerbose)
@@ -142,13 +137,22 @@ void g4tCenterPage(THIS)
             	this->yPaperOut,this->cyPaperOut);
          }
        break;
-     case CLIP_FIX_BORDERS:
-	/* fprintf(stderr,"Wir hatten: %d/%d",this->xPaperOut,this->yPaperOut); */
-     	this->xPaperOut=this->nPCLResolution/5;
-        this->xPaperOut-=(this->xPaperOut % 8);
-     	this->yPaperOut=this->nPCLResolution/7; /* xxx */
-	/* fprintf(stderr," und bekommen: %d/%d\n",this->xPaperOut,this->yPaperOut); */
-     	break;
+     case G4_CLIP_FIX_BORDERS:
+       /* this routine assumes, that CY is not too big for the printer.
+	  My LJ aligns the image to the bottom, if it is too long,
+	  so be careful here.
+	  With this decision, FIX_BORDERS needs no assumptions about the
+	  printable area... */
+
+       /* fprintf(stderr,"Wir hatten: %d/%d",this->xPaperOut,this->yPaperOut); */
+       this->xPaperOut=G4_ABS(40); /* 0,6 cm for LJ 1200 */
+       this->xPaperOut-=(this->xPaperOut % 8);
+       this->yPaperOut=G4_ABS(30); /* 0,5 cm for LJ 1200 */
+       this->cxPaperOut-=this->xPaperOut;
+       this->cyPaperOut-=this->yPaperOut;
+
+       /* fprintf(stderr," und bekommen: %d/%d\n",this->xPaperOut,this->yPaperOut); */
+       break;
    }
  }
    

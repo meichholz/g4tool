@@ -36,7 +36,7 @@ static G4T_BOOL WriteSymbol(THIS, FILE *f, char *szBCB)
     if (this->cbSymbol==8)
      {
       /* fputc(this->uchSymbol,f); */
-      if (this->nFileFormat==OFMT_RAWG4)
+      if (this->nFileFormat==G4_OFMT_RAWG4)
         putc(this->uchSymbol,f);
       else
         this->b=g4tTiffEnter(this,this->uchSymbol);

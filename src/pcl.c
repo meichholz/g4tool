@@ -17,19 +17,19 @@
 
 G4T_BOOL g4tWriteHeadPCL(THIS,FILE *f)
  {
-    	/* fprintf(f,"\x1B" "E"); */	/* Jobstart */
-    	fprintf(f,"\x1B&l%dO",	/* Orientierung */
-    		this->bLandscape ? 1 : 0 );
-    	fprintf(f,
-    		"\x1B&a0L"	/* Rand links weg */
-    		"\x1B&l0E"	/* Rand oben weg */
-    		"\x1B*t%dR"	/* Resolution */
-    		"\x1B*r0F"	/* logische Seite */
-    		"\x1B*r1A"	/* ab ? (start graphics) */
-    		"\x1B*b1Y"	/* Seed to 0 */
-    		"\x1B*b3M"	/* directly compress! */
-    		, this->nPCLResolution
-		);
+   if (this->bWriteOrientation)
+     fprintf(f,"\x1B&l%dO",	/* Orientierung */
+	     this->bLandscape ? 1 : 0 );
+   fprintf(f,
+	   "\x1B&a0L"	/* set left margin to zero */
+	   "\x1B&l0E"	/* set top margin to 0 text lines */
+	   "\x1B*t%dR"	/* set PCL resolution */
+	   "\x1B*r0F"	/* use logical page and printing direction */
+	   "\x1B*r0A"	/* align to left border (start graphics) */
+	   "\x1B*b1Y"	/* move no vertical line */
+	   "\x1B*b3M"	/* use directl compression */
+	   , this->nPCLResolution
+	   );
   /* fprintf(stderr,"coding for %d dpi\n",this->nPCLResolution); */
   return TRUE;
  }
@@ -86,7 +86,7 @@ G4T_BOOL g4tFlushLinePCL(THIS,FILE *f)	/* für Laserjet 300 DPI */
   
   unsigned char	*pchRef, *pchCurrent, *pchPrev, *pchDelta;
   
-  unsigned char achPCL[CCH_PCL_BUF];
+  unsigned char achPCL[G4_PCL_CCHBUF];
   int	iPCL=0;
   G4T_BOOL	bRaw=(this->iLine==this->yPaperOut+1);
   		/* Die erste Zeile muß roh übertragen werden */
@@ -249,7 +249,7 @@ G4T_BOOL g4tFlushLinePCL(THIS,FILE *f)	/* für Laserjet 300 DPI */
    	/**
    	Der gerade berechnete Puffer wird ausgegeben.
    	*/
-  if (iPCL>CCH_PCL_BUF)
+  if (iPCL>G4_PCL_CCHBUF)
    {
     fprintf(stderr,"warning: pcl buffer overflowed in %d (%d)\n",this->iLine,iPCL);
    }

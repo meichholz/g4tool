@@ -94,9 +94,6 @@ typedef struct {
 */
 
 #define		Y_LAST_LINE	2
-#define		CCH_PCL_BUF	10000
-#define		CX_MAX_A4	2380
-#define		CY_MAX_A4	3407
 #define		CRUNTABLE	120
 
 
@@ -126,38 +123,30 @@ typedef struct Tg4tInstance {
 
   /* map dimensions */
   int	        cxPaper,cyPaper;
-  int	        xPaperOut;	/* Offset des ersten Ausgabepixels */
-  int	        cxPaperOut;	/* Größe des Ausgabepuffers */
-  int	        yPaperOut;	/* das Gleiche für die Höhe */
+  int	        xPaperOut;	/* offset of first output pixel */
+  int	        cxPaperOut;	/* count of output pixels */
+  int	        yPaperOut;	/* same for height */
   int	        cyPaperOut;
 
-  /* options for g4tool */
+  /* options for application */
   G4T_BOOL	bFullPage;
-  G4T_BOOL	bLandscape;
   G4T_BOOL	bRotate;
   int		nFileFormat;
   G4T_BOOL	bNoLineWarnings;
+  G4T_BOOL	bBacon;
+  int		nClipType;
+  int		nPCLResolution;
+  G4T_BOOL	bVerbose;
+  G4T_BOOL	bNoCheckEOL;
+
+  /* options for g4tool */
+  G4T_BOOL	bWriteOrientation; /* for PCL, mainly compatibility */
   G4T_BOOL	bDebugShowRunComp;
   G4T_BOOL	bDebugVerbose;
-  G4T_BOOL	bBacon;
   G4T_BOOL	bDebugPCL;
-  int		nClipType;
-  G4T_BOOL	bVerbose;
+  G4T_BOOL	bLandscape;
   G4T_BOOL	bDebugEncoder;
-  G4T_BOOL	bNoCheckEOL;
-  int		nPCLResolution;
 } Tg4tInstance;
-
-#define		OFMT_PBM	1
-#define		OFMT_TIFF	2
-#define		OFMT_PCL	3
-#define		OFMT_G4		4
-#define		OFMT_RAWG4	5
-
-#define	CLIP_NONE		0
-#define CLIP_CENTER_SIMPLE	1
-#define CLIP_CENTER_DOC		2
-#define CLIP_FIX_BORDERS	3
 
 #define THIS struct Tg4tInstance *this
 
