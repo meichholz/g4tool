@@ -1,9 +1,9 @@
 /*
 *
 * $Author: eichholz $
-* $Revision: 1.1 $
+* $Revision: 1.2 $
 * $State: Exp $
-* $Date: 2001/12/30 10:11:45 $
+* $Date: 2002/01/05 22:10:48 $
 *
 * ************************************************************
 * g4tool
@@ -16,9 +16,11 @@
 *
 */
 
-#define VERSION "0.17"
-
 /* Revisionsgeschichte siehe <Revision> */
+
+#if HAVE_CONFIG_H
+#	include "config.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

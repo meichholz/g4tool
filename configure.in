@@ -1,0 +1,7 @@
+SUBDIRS=src
+AC_INIT(src/global.h)
+AC_CONFIG_AUX_DIR(aux)
+AM_INIT_AUTOMAKE(g4tool,0.9)
+# AM_CONFIG_HEADER(src/config.h)
+AC_PROG_CC
+AC_OUTPUT(Makefile src/Makefile)
