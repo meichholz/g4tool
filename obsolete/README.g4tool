@@ -1,0 +1,27 @@
+Status
+------
+
+Fertig.
+
+. Dekodiert G4 in Bacon automatisch.
+. Andere Formate mit Parametern.
+. Schreibt PBM-S/W.
+. Kodiert Typ-4-PCL.
+. G4-Encoding.
+. Rotation.
+. TIFF-Encoding (ungetestet).
+
+Zusatzwerkzeuge
+---------------
+
+. dumpbits
+. lprpages
+. printdocs
+. prilist
+
+Todo
+----
+
+(-> Revision)
+. TIFF-Test
+. TIFF-Encoding
