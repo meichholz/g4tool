@@ -1,4 +1,4 @@
-/*RCS-Head: $Id: tiff2bacon.c,v 1.4 2002/02/05 22:45:17 eichholz Exp $ */
+/*RCS-Head: $Id: tiff2bacon.c,v 1.5 2002/02/06 14:42:26 eichholz Exp $ */
 
 /**
 
@@ -110,8 +110,8 @@ newfilename(void)
 		fnum = 0;
 	}
 #ifdef CODE_NAME_ALPHA
-	fpnt[0] = fnum / 26 + 'this->a';
-	fpnt[1] = fnum % 26 + 'this->a';
+	fpnt[0] = fnum / 26 + 'a';
+	fpnt[1] = fnum % 26 + 'a';
 #else
 	sprintf(fpnt,"%03ld",fnum);
 #endif
@@ -202,7 +202,7 @@ tiffcp(TIFF* in, FILE* out) /* auch hier: nicht TIFF */
 	  }
 	if (bitspersample!=1)
 	  {
-	    fprintf(stderr,"fatal: only support for this->b/w!\n");
+	    fprintf(stderr,"fatal: only support for b/w!\n");
 	    return 1;
 	  }
 	if (TIFFIsTiled(in))

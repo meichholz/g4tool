@@ -1,3 +1,3 @@
 # main make file
 
-SUBDIRS = src
+SUBDIRS = src man test

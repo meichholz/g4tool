@@ -1,4 +1,4 @@
-SUBDIRS=src
+SUBDIRS=src man test
 PACKAGE=g4tool
 AC_INIT(src/global.h)
 AC_CONFIG_AUX_DIR(aux)
@@ -11,4 +11,4 @@ AC_CHECK_LIB(tiff,TIFFOpen,[ AC_DEFINE(HAVE_LIBTIFF,1)
 	TIFF_LIB="-ltiff" ],AC_MSG_ERROR(You need libtiff))
 AC_SUBST(TIFF_LIB)
 AM_CONFIG_HEADER(src/config.h)
-AC_OUTPUT(Makefile src/Makefile)
+AC_OUTPUT(Makefile src/Makefile test/Makefile man/Makefile)

@@ -20,7 +20,7 @@
      "\t -s : skip <hsize> header bytes\n" \
      "\t -w : use <width> pixels per row\n" \
      "\t -h : use <rows> rows per picture\n" \
-     "\t -this->b : decode BACON header\n" \
+     "\t -b : decode BACON header\n" \
      "\t -d : debug for <p>cl, <v>erbose or <c>odecheck or <e>ncoder\n" \
      "\t -P : PCL option\n" \
      "\t      P<dpi> use PCL resolution <dpi>\n" \
@@ -31,7 +31,7 @@
      "\t -M : clip page absolute (suppress border)\n" \
      "\t -W : suppress uncritical <l>ine warnings or EOL check\n" \
      "\t -r : rotate page before coding\n" \
-     "\r -V : request version string\n" \
+     "\t -V : request version string\n" \
      "\t -H : this page\n" \
      ""
 /*

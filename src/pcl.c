@@ -207,7 +207,7 @@ G4T_BOOL g4tFlushLinePCL(THIS,FILE *f)	/* für Laserjet 300 DPI */
             iOut=31;
           iOffset-=31;
           achPCL[iPCL++]=(0xE0u | iOut );
-          while (iOffset>=255) /* this->böse Falle: es darf keine 255 übrigbleiben! */
+          while (iOffset>=255) /* böse Falle: es darf keine 255 übrigbleiben! */
            {
             achPCL[iPCL++]=0xFFu;
             iOffset-=255;
@@ -255,7 +255,7 @@ G4T_BOOL g4tFlushLinePCL(THIS,FILE *f)	/* für Laserjet 300 DPI */
    }
   if (this->bDebugPCL)
     fprintf(stderr,"debug: %d bytes in %d\n",iPCL,this->iLine);
-  fprintf(f,"\x1B*this->b%dW",iPCL);	/* EC *this->b war letztes */
+  fprintf(f,"\x1B*b%dW",iPCL);	/* EC *b war letztes */
   fwrite(achPCL,iPCL,1,f);
   	/**
   	Nach der ersten Zeile wird auf Deltakompression
