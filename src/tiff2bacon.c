@@ -1,4 +1,4 @@
-/*RCS-Head: $Id: tiff2bacon.c,v 1.1 2001/12/30 10:11:58 eichholz Exp $ */
+/*RCS-Head: $Id: tiff2bacon.c,v 1.2 2002/01/07 00:30:22 eichholz Exp $ */
 
 /**
 
@@ -31,7 +31,7 @@ Versionen:
 #include <stdlib.h>
 #include <string.h>
 
-#include "tiffio.h"
+#include "config.h"
 
 #define	streq(a,b)	(strcmp(a,b) == 0)
 #define	CopyField(tag, v) \

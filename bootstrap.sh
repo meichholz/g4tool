@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $Id: bootstrap.sh,v 1.1 2002/01/05 22:10:48 eichholz Exp $
+# $Id: bootstrap.sh,v 1.2 2002/01/07 00:30:21 eichholz Exp $
 
 test Makefile && make distclean
 
@@ -18,3 +18,7 @@ autoscan
 aclocal
 autoconf
 automake --add-missing --copy
+
+test "$1" = "-b" || exit 0
+
+./configure

@@ -1,9 +1,6 @@
 /*
 *
-* $Author: eichholz $
-* $Revision: 1.2 $
-* $State: Exp $
-* $Date: 2002/01/05 22:10:48 $
+* $Id: global.h,v 1.3 2002/01/07 00:30:22 eichholz Exp $
 *
 * ************************************************************
 * g4tool
@@ -11,8 +8,6 @@
 * Umwandlung eines G4-Bildes (ggf. mit Header) in ein PPM
 *
 * (C) Marian Matthias Eichholz 1. Mai 1997
-*
-* Version: s.u.
 *
 */
 

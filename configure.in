@@ -1,7 +1,18 @@
 SUBDIRS=src
+V_MAJOR=0
+V_MINOR=9
+V_BUILD=0
+# VERSION="${V_MAJOR}.${V_MINOR}.${V_BUILD}"
+PACKAGE=g4tool
 AC_INIT(src/global.h)
 AC_CONFIG_AUX_DIR(aux)
-AM_INIT_AUTOMAKE(g4tool,0.9)
-# AM_CONFIG_HEADER(src/config.h)
+AM_INIT_AUTOMAKE(g4tool,0.9.0)
 AC_PROG_CC
+AC_HEADER_STDC
+AC_CHECK_HEADER(tiffio.h,,AC_MSG_ERROR(tiffio.h not found))
+# AC_CHECK_HEADER(tiffio.h,[AC_DEFINE([HAVE_LIBTIFF], 1, [tiffio.h available])],tiffiox.h)
+AC_CHECK_LIB(tiff,TIFFOpen,[ AC_DEFINE(HAVE_LIBTIFF,1)
+	TIFF_LIB="-ltiff" ],AC_MSG_ERROR(You need libtiff))
+AC_SUBST(TIFF_LIB)
+AM_CONFIG_HEADER(src/config.h)
 AC_OUTPUT(Makefile src/Makefile)
