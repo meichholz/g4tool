@@ -1,0 +1,44 @@
+.\" $Id: tiff2bacon.1,v 1.1 2002/02/06 14:44:56 eichholz Exp $
+.TH tiff2bacon 1 "FEBRUARY 2002" Linux "User Manuals"
+.HY 0
+.SH NAME
+tiff2bacon \- split multipage G4 TIFF to BACON
+
+.de Vb \" Begin verbatim text
+.ft CW
+.nf   
+.ne \\$1
+..
+.de Ve \" End verbatim text
+.ft R
+..
+
+.SH SYNOPSIS
+.nf
+tiff2bacon \fIinput.tif\fR [\fIprefix\fR]
+tiff2bacon tiff.tif
+tiff2bacon old.tif new
+
+
+.SH DESCRIPTION
+
+The program \fBtiff2bacon\fR reads all directories of a TIFF input
+files and writes numbered files as result, normally \fI000, 001, 002\fR etc.
+
+You can specify a prefix for the files, say \fBout\fR, and the resulting
+files will be \fIout000, out001\fR etc.
+
+.SH RESTRICTIONS
+
+Due to the targeted input files from the WIPO, there are many
+restrictions for the input file. It must be G4 encoded and 1
+bit/pixel. It mus contain exactly 1 strip per page and must be
+untiled.
+
+The BACON header is somewhat dummy for now. It is ok for the DuSPAT
+facimile processors and contains only size and geometry in digits.
+
+.SH BUGS
+Eh?
+.SH AUTHOR
+Marian Eichholz <eichholz@computer.org>
