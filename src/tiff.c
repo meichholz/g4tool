@@ -1,32 +1,13 @@
-/*
-*
-* $Author: eichholz $
-* $Revision: 1.2 $
-* $State: Exp $
-* $Date: 2002/02/05 16:26:16 $
-*
-* ************************************************************
-* g4tool
-*
-* Umwandlung eines G4-Bildes (ggf. mit Header) in ein PPM
-*
-* (C) Marian Matthias Eichholz 1. Mai 1997
-*
-*/
-
 /* *******************************************************
 *
 * <tiff.c>
 *
-* Mimik zum Handeln eines TIFF-Images
+* some barebones mimic for handling TIFF images.
+* will possibly go to Sam Leffler's TIFF-Library soem day.
 *
 * ******************************************************* */
 
 #include "global.h"
-
-static unsigned char *pchWrite;
-static long	liWrite;
-static long	liMax;
 
 #define TIFF_BYTE	1
 #define TIFF_ASCII	2
@@ -51,90 +32,90 @@ typedef struct {
 
 #endif
 
-BOOL g4tTiffCreate(this,long lcchEstimate)
+G4T_BOOL g4tTiffCreate(THIS, long lcchEstimate)
  {
-  liMax=lcchEstimate;
-  pchWrite=malloc(liMax);
-  if (pchWrite==0) return FALSE;
+  this->liMax=lcchEstimate;
+  this->pchWrite=malloc(this->liMax);
+  if (this->pchWrite==0) return FALSE;
   return TRUE;
  }
 
-BOOL g4tTiffEnter(this,unsigned char uch)
+G4T_BOOL g4tTiffEnter(THIS, unsigned char uch)
  {
-  if (pchWrite && liWrite<liMax)
+  if (this->pchWrite && this->liWrite<this->liMax)
    {
-    pchWrite[liWrite++]=uch;
+    this->pchWrite[this->liWrite++]=uch;
     return TRUE;
    }
   return FALSE;
  }
 
-static BOOL TiffWriteAny(FILE *f, long l, int cBytes)
+static G4T_BOOL TiffWriteAny(THIS, FILE *f, long l, int cBytes)
  {
-  BOOL		this->b;
+  G4T_BOOL		b;
   unsigned char	*ptr;
   long lBuffer	=l;
   ptr=(unsigned char *)&lBuffer;
-  this->b=TRUE;
+  b=TRUE;
   /* ggf. muß hier permutiert werden!!! */
   		/* nur intel */
   /* Die Bytes des Puffers werden nun einfach weggeschrieben */
-  this->b=(1==fwrite(ptr,cBytes,1,f));
-  return this->b;
+  b=(1==fwrite(ptr,cBytes,1,f));
+  return b;
  }
 
-BOOL TiffWriteShort(FILE *f, short s)
+G4T_BOOL TiffWriteShort(THIS, FILE *f, short s)
  {
-  return TiffWriteAny(f,s,2);
+  return TiffWriteAny(this,f,s,2);
  }
 
-BOOL TiffWriteLong(FILE *f, long l)
+G4T_BOOL TiffWriteLong(THIS, FILE *f, long l)
  {
-  return TiffWriteAny(f,l,4);
+  return TiffWriteAny(this,f,l,4);
  }
 
-BOOL TiffWriteTag(FILE *f, short sTagType, short sDataType,
+G4T_BOOL TiffWriteTag(THIS, FILE *f, short sTagType, short sDataType,
 		long cData, long lData)
  {
-  BOOL this->b=TRUE;
-  if (this->b) this->b=TiffWriteShort(f,sTagType);
-  if (this->b) this->b=TiffWriteShort(f,sDataType);
-  if (this->b) this->b=TiffWriteLong(f,cData);
-  if (this->b) this->b=TiffWriteLong(f,lData); /* erm: Long/Short+Pad? */
-  return this->b;
+  G4T_BOOL b=TRUE;
+  if (b) b=TiffWriteShort(this,f,sTagType);
+  if (b) b=TiffWriteShort(this,f,sDataType);
+  if (b) b=TiffWriteLong(this,f,cData);
+  if (b) b=TiffWriteLong(this,f,lData); /* erm: Long/Short+Pad? */
+  return b;
  }
 
-BOOL g4tTiffClose(this,FILE *f, int cx, int cy, int idCompression)
+G4T_BOOL g4tTiffClose(THIS, FILE *f, int cx, int cy, int idCompression)
  {
-  BOOL	this->b;
+  G4T_BOOL	b;
   short	cTags;
-  if (!pchWrite) return FALSE;
+  if (!this->pchWrite) return FALSE;
   fprintf(f,"II");			/* erst mal nur INTEL */
-  this->b=TRUE;
-  if (this->b) this->b=TiffWriteShort(f,42);
-  if (this->b) this->b=TiffWriteLong(f,8);
+  b=TRUE;
+  if (b) b=TiffWriteShort(this,f,42);
+  if (b) b=TiffWriteLong(this,f,8);
   					/* Nur ein IFD wird angelegt */
   /* Off=8 */
   cTags=10;
-  if (this->b) this->b=TiffWriteShort(f,cTags);				/* Anzahl Tags */
+  if (b) b=TiffWriteShort(this,f,cTags);				/* Anzahl Tags */
   /* Off=10 */
-  if (this->b) this->b=TiffWriteTag(f,0xFE,TIFF_LONG,1,0); 			/* Vollbild */
-  if (this->b) this->b=TiffWriteTag(f,0x100,TIFF_SHORT,1,cx);		/* Resolution */
-  if (this->b) this->b=TiffWriteTag(f,0x101,TIFF_SHORT,1,cy);
-  if (this->b) this->b=TiffWriteTag(f,0x102,TIFF_SHORT,1,1);		/* 1 bps */
-  if (this->b) this->b=TiffWriteTag(f,0x103,TIFF_SHORT,1,idCompression);	/* G4-Strips */
-  if (this->b) this->b=TiffWriteTag(f,0x106,TIFF_SHORT,1,0);		/* WB-Kodierung (?) */
-  if (this->b) this->b=TiffWriteTag(f,0x111,TIFF_LONG,1,14+cTags*12+16);	/* Datenstart */
-  if (this->b) this->b=TiffWriteTag(f,0x117,TIFF_LONG,1,liWrite);		/* Länge */
-  if (this->b) this->b=TiffWriteTag(f,0x11A,TIFF_RATIONAL,1,14+cTags*12+0);	/* Resolution */	
-  if (this->b) this->b=TiffWriteTag(f,0x11B,TIFF_RATIONAL,1,14+cTags*12+8);
+  if (b) b=TiffWriteTag(this,f,0xFE,TIFF_LONG,1,0); 			/* Vollbild */
+  if (b) b=TiffWriteTag(this,f,0x100,TIFF_SHORT,1,cx);		/* Resolution */
+  if (b) b=TiffWriteTag(this,f,0x101,TIFF_SHORT,1,cy);
+  if (b) b=TiffWriteTag(this,f,0x102,TIFF_SHORT,1,1);		/* 1 bps */
+  if (b) b=TiffWriteTag(this,f,0x103,TIFF_SHORT,1,idCompression);	/* G4-Strips */
+  if (b) b=TiffWriteTag(this,f,0x106,TIFF_SHORT,1,0);		/* WB-Kodierung (?) */
+  if (b) b=TiffWriteTag(this,f,0x111,TIFF_LONG,1,14+cTags*12+16);	/* Datenstart */
+  if (b) b=TiffWriteTag(this,f,0x117,TIFF_LONG,1,this->liWrite);		/* Länge */
+  if (b) b=TiffWriteTag(this,f,0x11A,TIFF_RATIONAL,1,14+cTags*12+0);	/* Resolution */	
+  if (b) b=TiffWriteTag(this,f,0x11B,TIFF_RATIONAL,1,14+cTags*12+8);
   /* Off=10+nTag*12 */
-  if (this->b) this->b=TiffWriteLong(f,0);	/* IFD Ende */
+  if (b) b=TiffWriteLong(this,f,0);	/* IFD Ende */
   	/* DATEN */
   	/* Auflösungen */
-  if (this->b) this->b=TiffWriteLong(f,300); this->b=TiffWriteLong(f,1);
-  if (this->b) this->b=TiffWriteLong(f,300); this->b=TiffWriteLong(f,1);
-  fwrite(pchWrite,liWrite,1,f);
-  free(pchWrite);
+  if (b) b=TiffWriteLong(this,f,300); b=TiffWriteLong(this,f,1);
+  if (b) b=TiffWriteLong(this,f,300); b=TiffWriteLong(this,f,1);
+  fwrite(this->pchWrite,this->liWrite,1,f);
+  free(this->pchWrite);
   return TRUE;
  }

@@ -25,7 +25,6 @@
 
 #include "g4tool.h"
 
-#define BOOL    G4T_BOOL
 #define TRUE    1
 #define FALSE   0
 
@@ -102,39 +101,52 @@ typedef struct {
 
 
 typedef struct Tg4tInstance {
-  int	cxPaper,cyPaper;
-  int	xPaperOut;	/* Offset des ersten Ausgabepixels */
-  int	cxPaperOut;	/* Größe des Ausgabepuffers */
-  int	yPaperOut;	/* das Gleiche für die Höhe */
-  int	cyPaperOut;
-  int	acRuns[2];
+  /* code table stuff */
+  int	        acRuns[2];
   TRunSpec	arsRuns[2][CRUNTABLE];
-  BOOL	        aabitBuffers[Y_LAST_LINE][CX_MAX+5];
-  BOOL	        *abitRef,*abitWork; /* only pointer */
+  G4T_BOOL	aabitBuffers[Y_LAST_LINE][G4T_CX_MAX+5];
+  G4T_BOOL      *abitRef,*abitWork; /* only pointer */
   int	        iBuffer;
   unsigned char	*pchFullPage;
   long		lcchFullPageLine;
   long		lcFullPageLines;
 
-  BOOL		bFullPage;
-  BOOL		bLandscape;
-  BOOL		bRotate;
-  int		nFileFormat;
-
+  /* decoder.c */
   int		iLine,iByte;
   int		a,b;
 
-  BOOL		bNoLineWarnings;
-  BOOL		bDebugShowRunComp;
-  BOOL		bDebugVerbose;
-  BOOL		bBacon;
-  BOOL		bDebugPCL;
+  /* encode.c */
+  unsigned char uchSymbol;
+  unsigned int  cbSymbol;
+
+  /* tiff.c */
+  unsigned char *pchWrite;
+  long	liWrite;
+  long	liMax;
+
+  /* map dimensions */
+  int	        cxPaper,cyPaper;
+  int	        xPaperOut;	/* Offset des ersten Ausgabepixels */
+  int	        cxPaperOut;	/* Größe des Ausgabepuffers */
+  int	        yPaperOut;	/* das Gleiche für die Höhe */
+  int	        cyPaperOut;
+
+  /* options for g4tool */
+  G4T_BOOL	bFullPage;
+  G4T_BOOL	bLandscape;
+  G4T_BOOL	bRotate;
+  int		nFileFormat;
+  G4T_BOOL	bNoLineWarnings;
+  G4T_BOOL	bDebugShowRunComp;
+  G4T_BOOL	bDebugVerbose;
+  G4T_BOOL	bBacon;
+  G4T_BOOL	bDebugPCL;
   int		nClipType;
-  BOOL		bVerbose;
-  BOOL		bDebugEncoder;
-  BOOL		bNoCheckEOL;
+  G4T_BOOL	bVerbose;
+  G4T_BOOL	bDebugEncoder;
+  G4T_BOOL	bNoCheckEOL;
   int		nPCLResolution;
-};
+} Tg4tInstance;
 
 #define		OFMT_PBM	1
 #define		OFMT_TIFF	2

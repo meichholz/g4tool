@@ -71,7 +71,7 @@ g4tool_SOURCES = main.c global.h
 # g4tool_HEADERS=global.h
 g4tool_LDADD = libg4tool.a
 
-libg4tool_a_SOURCES = encode.c decode.c pcl.c tiff.c tables.c 
+libg4tool_a_SOURCES = encode.c decode.c pcl.c pbm.c tiff.c tables.c 
 # libg4tool_a_HEADERS=
 
 tiff2bacon_SOURCES = tiff2bacon.c
@@ -87,7 +87,7 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libg4tool_a_LIBADD = 
-libg4tool_a_OBJECTS =  encode.o decode.o pcl.o tiff.o tables.o
+libg4tool_a_OBJECTS =  encode.o decode.o pcl.o pbm.o tiff.o tables.o
 AR = ar
 PROGRAMS =  $(bin_PROGRAMS)
 
@@ -108,8 +108,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/decode.P .deps/encode.P .deps/main.P .deps/pcl.P \
-.deps/tables.P .deps/tiff.P .deps/tiff2bacon.P
+DEP_FILES =  .deps/decode.P .deps/encode.P .deps/main.P .deps/pbm.P \
+.deps/pcl.P .deps/tables.P .deps/tiff.P .deps/tiff2bacon.P
 SOURCES = $(libg4tool_a_SOURCES) $(g4tool_SOURCES) $(tiff2bacon_SOURCES)
 OBJECTS = $(libg4tool_a_OBJECTS) $(g4tool_OBJECTS) $(tiff2bacon_OBJECTS)
 

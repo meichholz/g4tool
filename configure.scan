@@ -3,7 +3,6 @@ AC_INIT(src/decode.c)
 
 dnl Checks for programs.
 AC_PROG_AWK
-AC_PROG_MAKE_SET
 
 dnl Checks for libraries.
 

@@ -1,4 +1,4 @@
-/*RCS-Head: $Id: tiff2bacon.c,v 1.3 2002/02/05 16:26:16 eichholz Exp $ */
+/*RCS-Head: $Id: tiff2bacon.c,v 1.4 2002/02/05 22:45:17 eichholz Exp $ */
 
 /**
 
@@ -6,19 +6,18 @@
 
 tiff2bacon
 
-Das Programm splittet ein Multipage-G4-TIFF auf mehrere BACON-geheaderte
-Roh-G4-Files auf.
+This little helper splits a multipage g4 TIFF to several
+g4 files with fake BACON header.
 
-Es ist *kein* Universalprogramm!
+This is special made for DuSPAT internal facsimile processing.
+Only simple geometry BACON fields are written.
 
-Es basiert auf dem <tiffsplit.c> von Sam Leffler aus der <libtiff>
+The program is based on <tiffsplit.c> from Sam Leffler (libtiff).
 
  * Copyright (c) 1992-1996 Sam Leffler
  * Copyright (c) 1992-1996 Silicon Graphics, Inc.
 
-(c) Marian Eichholz at DuSPAT 15.3.1999
-
-Es ist wirklich eher ein Down-Strip von Sams Programm, ok?
+(c) Marian Eichholz at DuSPAT 15.3.1999, 5.2.2002
 
 Versionen:
 0.19 : 15.03.1999 (startup)
@@ -33,12 +32,12 @@ Versionen:
 
 #include "config.h"
 
-#define	streq(this->a,this->b)	(strcmp(this->a,this->b) == 0)
-#define	CopyField(tag, v) \
+#define	streq(a,b)	(strcmp(a,b) == 0)
+#define	CopyField(tag,v) \
     if (TIFFGetField(in, tag, &v)) TIFFSetField(out, tag, v)
-#define	CopyField2(tag, v1, v2) \
+#define	CopyField2(tag,v1,v2) \
     if (TIFFGetField(in, tag, &v1, &v2)) TIFFSetField(out, tag, v1, v2)
-#define	CopyField3(tag, v1, v2, v3) \
+#define	CopyField3(tag,v1,v2,v3) \
     if (TIFFGetField(in, tag, &v1, &v2, &v3)) TIFFSetField(out, tag, v1, v2, v3)
 
 static	char fname[1024+1];

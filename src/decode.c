@@ -1,46 +1,26 @@
-/*
-*
-* $Author: eichholz $
-* $Revision: 1.3 $
-* $State: Exp $
-* $Date: 2002/02/05 16:26:16 $
-*
-* ************************************************************
-* g4tool
-*
-* Umwandlung eines G4-Bildes (ggf. mit Header) in ein PPM
-*
-* (C) Marian Matthias Eichholz 1. Mai 1997
-*
-*/
-
 /* *******************************************************
 *
 * <decode.c>
 *
-* Hier wird eine G4-Zeile mit Hilfe des externen Gedächtnisses
-* nach aBitWork dekodiert.
+* A g4 coded line is decoded to <aBitWork> through an external memory.
 *
-* g4tSetTables(this,) macht Initialisierung der Tabellen.
-* GetLine() holt Codes und übersetzt.
+* g4tSetTables() initialises the tables.
+* GetLine() gets new tokens and translates them.
 *
-* Die Laufsteuerung erfolgt darüberhinaus extern.
+* run control is external.
 *
 * ******************************************************* */
 
 /**
-	Die Indizes beschreiben die virtuellen Pixel nach T.4-Spec.
-	Das bedeutet, daß das erste Pixel immer(!) weiß ist [Index 0],
-	und daß die Zeile von 1..this->cxPaper beschrieben wird.
-	
-	Die Variable "this->a" beschreibt dabei die jeweils zuletzt dekodierte
-	Position, initial also 0 (und WHITE).
-	
-	Die letzte Spalte (this->cxPaper) muß also auch kodiert werden (z.B. mit V(0).
-	
-	In (this->a) steht demnach auch stets die lette kodierte Farbe zur Verfügung
-	(als Lookahead für die H-Codes beispielsweise).
-	
+indices describe "virtual pixels" according to T.4.
+the first pixel is defined WHITE (index 0).
+the real line is in 1..this->cxPaper.
+this->a is the last decoded position and starts with 0.
+
+thus, the last column [this->cxPaper] MUST be decoded (with V(0)).
+
+this->a has the last coded color, used as look-ahead for the H codes.
+
 */
 
 #include "global.h"
@@ -51,7 +31,7 @@
  ******************************************************************
  */
 
-static int GetBit(FILE *f)
+static int GetBit(THIS, FILE *f)
  {
   static 		int cAvailBits=0;
   static unsigned	char chAkku;
@@ -75,11 +55,11 @@ static int GetBit(FILE *f)
  ******************************************************************
  */
 
-static BOOL SkipBits(FILE *f, int cBits)
+static G4T_BOOL SkipBits(THIS, FILE *f, int cBits)
  {
-  BOOL bEOF=FALSE;
+  G4T_BOOL bEOF=FALSE;
   while (cBits-- && !bEOF)
-    bEOF=(GetBit(f)<0);
+    bEOF=(GetBit(this, f)<0);
   return !bEOF;
  }
 
@@ -89,7 +69,7 @@ static BOOL SkipBits(FILE *f, int cBits)
  ******************************************************************
  */
 
-static void SetBCodes(int a0, int *pb1, int *pb2)
+static void SetBCodes(THIS, int a0, int *pb1, int *pb2)
  {
   int	i=a0+1; /* fuer schnellerer Rechnung!!! */
   int color0=this->abitWork[a0];
@@ -136,14 +116,14 @@ static void SetBCodes(int a0, int *pb1, int *pb2)
  ******************************************************************
  */
 
-static void Vertical(int nType, int nOffset)
+static void Vertical(THIS, int nType, int nOffset)
  {
   int	a0,b1;
   int	i;
-  BOOL	bValue;
+  G4T_BOOL	bValue;
   int nTotalOffset=((nType) ? 1 : -1)*nOffset; /* nType:1=R */
   a0=this->a;
-  SetBCodes(this->a,&b1,NULL);
+  SetBCodes(this,this->a,&b1,NULL);
   bValue=this->abitWork[this->a];
   this->a=b1+nTotalOffset;
   for (i=a0; i<this->a; i++)
@@ -161,7 +141,7 @@ static void Vertical(int nType, int nOffset)
  ******************************************************************
  */
 
-static void Horizontal(int colFirst,int *cRuns)
+static void Horizontal(THIS, int colFirst,int *cRuns)
  {
   int iColor=0;
   static char achCols[]="WB";
@@ -189,11 +169,11 @@ static void Horizontal(int colFirst,int *cRuns)
  ******************************************************************
  */
 
-static void Passcode(void)
+static void Passcode(THIS)
  {
   int dummy,b2,i;
   int nColor;
-  SetBCodes(this->a,&dummy,&b2);
+  SetBCodes(this,this->a,&dummy,&b2);
   	/**
   	Bis zum neuen b2 wird das Feld in der Farbe (a0) verfüllt.
   	Das neue (a0) wird gleich mitverfüllt.
@@ -212,11 +192,11 @@ static void Passcode(void)
  ******************************************************************
  */
 
-static BOOL GetSymbol(FILE *f, int *pnSymbol, BOOL *pbEOF)
+static G4T_BOOL GetSymbol(THIS, FILE *f, int *pnSymbol, G4T_BOOL *pbEOF)
  {
   long		ulSymbol=1;
-  BOOL		bWaiting=FALSE;
-  static BOOL	bLastEOL=FALSE;
+  G4T_BOOL		bWaiting=FALSE;
+  static G4T_BOOL	bLastEOL=FALSE;
   		/**
   		Ein Symbol wird identifiziert. Nur Basissymbole!
   		Die Schleife läuft bis EOF oder Fund.
@@ -226,11 +206,12 @@ static BOOL GetSymbol(FILE *f, int *pnSymbol, BOOL *pbEOF)
   *pbEOF=FALSE;
   do
    {
-    int nBit=GetBit(f);
+    int nBit=GetBit(this,f);
     if (nBit<0)
      {
       if (this->iLine<this->cyPaper || !this->bNoCheckEOL)
-        fprintf(stderr,"unexpected EOF at byte %d/%X\n",this->iByte,iByte);
+        fprintf(stderr,"unexpected EOF at byte %d/%X\n",
+		this->iByte,this->iByte);
       *pbEOF=TRUE;
       return FALSE;
      }
@@ -282,10 +263,10 @@ static BOOL GetSymbol(FILE *f, int *pnSymbol, BOOL *pbEOF)
  ******************************************************************
  */
 
-static BOOL GetColorRun(FILE *f, int iColor, int *pcRuns, BOOL *pbEOF)
+static G4T_BOOL GetColorRun(THIS, FILE *f, int iColor, int *pcRuns, G4T_BOOL *pbEOF)
  {
   long		ulSymbol=1;
-  BOOL		bWaiting=FALSE;
+  G4T_BOOL		bWaiting=FALSE;
   		/**
   		Systematik fast wie GetSymbol.
   		Nur anderes Suchverfahren.
@@ -295,11 +276,12 @@ static BOOL GetColorRun(FILE *f, int iColor, int *pcRuns, BOOL *pbEOF)
   
   do
    {
-    int nBit=GetBit(f);
+    int nBit=GetBit(this,f);
     /* fprintf(stderr,"%d",nBit); */
     if (nBit<0)
      {
-      fprintf(stderr,"unexpected EOF at byte %d/%X\n",this->iByte,iByte);
+      fprintf(stderr,"unexpected EOF at byte %d/%X\n",
+	      this->iByte,this->iByte);
       *pbEOF=TRUE;
       return FALSE;
      }
@@ -384,11 +366,11 @@ static BOOL GetColorRun(FILE *f, int iColor, int *pcRuns, BOOL *pbEOF)
  ******************************************************************
  */
 
-BOOL GetLine(FILE *f)
+static G4T_BOOL GetLine(THIS, FILE *f)
  {
   int nSymbol;
-  BOOL	bError,bEOF;
-  BOOL	bBreak=FALSE;
+  G4T_BOOL	bError,bEOF;
+  G4T_BOOL	bBreak=FALSE;
   int	acCols[2];
   do
    {
@@ -397,34 +379,34 @@ BOOL GetLine(FILE *f)
       fprintf(stderr,"oops: parameter runaway!");
       return FALSE;
      }
-    bError=!GetSymbol(f,&nSymbol,&bEOF);
+    bError=!GetSymbol(this, f, &nSymbol, &bEOF);
     if (!bEOF)
      {
       switch (nSymbol)
        {
-        case SYM_P:	Passcode(); break;
-        case SYM_V0:	Vertical(1,0); break;
-        case SYM_VR1:	Vertical(1,1); break;
-        case SYM_VR2:	Vertical(1,2); break;
-        case SYM_VR3:	Vertical(1,3); break;
-        case SYM_VL1:	Vertical(0,1); break;
-        case SYM_VL2:	Vertical(0,2); break;
-        case SYM_VL3:	Vertical(0,3); break;
+        case SYM_P:	Passcode(this); break;
+        case SYM_V0:	Vertical(this,1,0); break;
+        case SYM_VR1:	Vertical(this,1,1); break;
+        case SYM_VR2:	Vertical(this,1,2); break;
+        case SYM_VR3:	Vertical(this,1,3); break;
+        case SYM_VL1:	Vertical(this,0,1); break;
+        case SYM_VL2:	Vertical(this,0,2); break;
+        case SYM_VL3:	Vertical(this,0,3); break;
         case SYM_EXT:
 		fprintf(stderr,"<EXT> detected at %d/%X: not supported.\n",
-				this->iByte,iByte);
-		bEOF=!SkipBits(f,3);
+				this->iByte,this->iByte);
+		bEOF=!SkipBits(this,f,3);
         	break;
         case SYM_H:
          	 {
 		  int colFirst=this->abitWork[this->a]; /* +1? */
 		  		/*!this->abitWork[this->a];*/
-        	  bError=!GetColorRun(f,colFirst,acCols,&bEOF);
+        	  bError=!GetColorRun(this, f,colFirst,acCols,&bEOF);
         	  
         	  if (!bError)
-         	    bError=!GetColorRun(f,!colFirst,acCols+1,&bEOF);
+         	    bError=!GetColorRun(this,f,!colFirst,acCols+1,&bEOF);
          	  if (!bError)
-         	    Horizontal(colFirst,acCols);
+         	    Horizontal(this,colFirst,acCols);
          	 }
         	break;
         case SYM_EOFB:
@@ -453,7 +435,7 @@ BOOL GetLine(FILE *f)
 
 /*
  ******************************************************************
- * g4tSetTables(this,)
+ * g4tSetTables(...)
  ******************************************************************
  */
 
@@ -464,7 +446,7 @@ BOOL GetLine(FILE *f)
 	
 	Der Code wird nach Codewort aufsteigend einsortiert.
 	*/
-BOOL g4tSetTables(this,void)
+G4T_BOOL g4tSetTables(THIS)
  {
   int iColor, iRun;
   for (iColor=WHITE; iColor<=BLACK; iColor++)
@@ -539,14 +521,14 @@ BOOL g4tSetTables(this,void)
 
 /*
  ******************************************************************
- * g4tDecodePage(this,)
+ * g4tDecodePage(...)
  ******************************************************************
  */
 
-int g4tDecodePage(this,void)
+G4T_RC g4tDecodePage(THIS, FILE *f)
  {
   int i;
-  BOOL bAbort=FALSE;
+  G4T_BOOL bAbort=FALSE;
   	/**
   	Der eigentliche Dump wird nur dann gleitend ausgeführt,
   	wenn nicht rotiert wird.
@@ -559,15 +541,18 @@ int g4tDecodePage(this,void)
   if (this->bVerbose)
     fprintf(stderr,"decoding...\n");
   if (!this->bRotate)
-    g4tWriteHeader(this,stdout);
+    g4tWriteHeader(this,f);
   this->iLine=1;
   this->a=0;
   this->abitRef=this->aabitBuffers[1];
   this->abitWork=this->aabitBuffers[0];
   this->iBuffer=0;
-  g4tCenterPage(this,);
-  for (i=0; i<this->cxPaper+3; this->abitWork[i]=this->abitRef[i]=WHITE) i++;
-  while (!bAbort && GetLine(stdin))
+  g4tCenterPage(this);
+  for (i=0;
+       i<this->cxPaper+3;
+       this->abitWork[i]=this->abitRef[i]=WHITE)
+    i++;
+  while (!bAbort && GetLine(this,stdin))
    {
     if (this->bDebugVerbose)
       fprintf(stderr,"setting line %d...\n",this->iLine);
@@ -577,11 +562,11 @@ int g4tDecodePage(this,void)
       		So kann ein Flusher auch die Referenzzeile
       		mitverwenden.
       		*/
-    if (this->iLine<CY_MAX)
+    if (this->iLine<G4T_CY_MAX)
       if (this->bRotate)
-        g4tEncodePageLine(this,);
+        g4tEncodePageLine(this);
       else
-        g4tFlushLine(this,stdout);
+        g4tFlushLine(this,f);
     this->iBuffer=(this->iBuffer+1) & 1;
     this->abitRef=this->abitWork;
     this->abitWork=this->aabitBuffers[this->iBuffer];
@@ -599,7 +584,7 @@ int g4tDecodePage(this,void)
     if (this->iLine>this->cyPaper && this->bNoCheckEOL) bAbort=TRUE;
    }
   if (!this->bRotate)
-    g4tClosePage(this,stdout);   
+    g4tClosePage(this,f);   
    	/**
    	Die Anzahl der Zeilen wird geprüft. Die wird bei einem
    	Formatfehler meist abweichen.
@@ -608,9 +593,9 @@ int g4tDecodePage(this,void)
     if (!this->bNoLineWarnings)
      {
       fprintf(stderr,"got %d lines instead of %d\n",this->iLine-1,this->cyPaper);
-      return 1;
+      return G4T_EGENERAL;
      }
-  return 0;
+  return G4T_EOK;
  }
 
 /* $Extended$File$Info$

@@ -1,25 +1,9 @@
-/*
-*
-* $Author: eichholz $
-* $Revision: 1.2 $
-* $State: Exp $
-* $Date: 2002/02/05 16:26:16 $
-*
-* ************************************************************
-* g4tool
-*
-* Umwandlung eines G4-Bildes (ggf. mit Header) in ein PPM
-*
-* (C) Marian Matthias Eichholz 1. Mai 1997
-*
-*/
-
 /* *******************************************************
 *
 * <pcl.c>
 *
-* Die aktuelle Zeile wird hier zu PCL-Delta-Code übersetzt.
-* Teile der Fileinitialisierung laufen auch hier.
+* The actual row is encoded as PCL delta row codes.
+* In addition, parts of file initialisation goes here.
 *
 * ******************************************************* */
 
@@ -31,7 +15,7 @@
  ******************************************************************
  */
 
-BOOL g4tWriteHeadPCL(this,FILE *f)
+G4T_BOOL g4tWriteHeadPCL(THIS,FILE *f)
  {
     	/* fprintf(f,"\x1B" "E"); */	/* Jobstart */
     	fprintf(f,"\x1B&l%dO",	/* Orientierung */
@@ -56,7 +40,7 @@ BOOL g4tWriteHeadPCL(this,FILE *f)
  ******************************************************************
  */
 
-BOOL g4tDumpPagePCL(this,FILE *f)
+G4T_BOOL g4tDumpPagePCL(THIS,FILE *f)
  {
  	/**
  	Diese Funktion ist im Grunde Dummy.
@@ -92,7 +76,7 @@ BOOL g4tDumpPagePCL(this,FILE *f)
  ******************************************************************
  */
 
-BOOL g4tFlushLinePCL(this,FILE *f)	/* für Laserjet 300 DPI */
+G4T_BOOL g4tFlushLinePCL(THIS,FILE *f)	/* für Laserjet 300 DPI */
  {
   int	iWorkBit;
   int	iLastWorkBit;
@@ -104,7 +88,7 @@ BOOL g4tFlushLinePCL(this,FILE *f)	/* für Laserjet 300 DPI */
   
   unsigned char achPCL[CCH_PCL_BUF];
   int	iPCL=0;
-  BOOL	bRaw=(this->iLine==this->yPaperOut+1);
+  G4T_BOOL	bRaw=(this->iLine==this->yPaperOut+1);
   		/* Die erste Zeile muß roh übertragen werden */
   if (this->iLine<=this->yPaperOut) return TRUE;	/* aber davor NICHTS! */
 #ifdef SUPPRESS_DELTA_PCL
@@ -148,7 +132,7 @@ BOOL g4tFlushLinePCL(this,FILE *f)	/* für Laserjet 300 DPI */
    {
     /** Der bei einigen Quellen auftretende rechte Ranstreifen
         wird explizit geweißelt! */
-    BOOL bBit=iWorkBit>this->cxPaper ? 0 : this->abitWork[iWorkBit];
+    G4T_BOOL bBit=iWorkBit>this->cxPaper ? 0 : this->abitWork[iWorkBit];
     uch=(uch<<1) | bBit;
     if (++cBits == 8)
      {
@@ -174,7 +158,7 @@ BOOL g4tFlushLinePCL(this,FILE *f)	/* für Laserjet 300 DPI */
 	*/  
   if (!bRaw)
    {
-    int this->iByte=0;
+    int iByte=0;
     int	iLastByte=(this->cxPaperOut+7)/8; /* hmmm... wg "+1" kann auch 8 sein */
     int	iCount;
     int iOffset;
@@ -184,18 +168,18 @@ BOOL g4tFlushLinePCL(this,FILE *f)	/* für Laserjet 300 DPI */
     	Gleiche Bytes zählen, Differenzblock bestimmen
     	und das Ergebnis übertragen.
     	*/
-    while (this->iByte < iLastByte)
+    while (iByte < iLastByte)
      {
       		/**
 		Zähle gleiche Bytes. Die Aufteilung des Ergebnisses
 		wird später erledigt.
 		*/
       iOffset=0;
-      while (this->iByte < iLastByte && (*pchCurrent) == (*pchPrev))
+      while (iByte < iLastByte && (*pchCurrent) == (*pchPrev))
        {
         pchCurrent++;
         pchPrev++;
-        this->iByte++;
+        iByte++;
         iOffset++;
        }
       		/**
@@ -203,11 +187,11 @@ BOOL g4tFlushLinePCL(this,FILE *f)	/* für Laserjet 300 DPI */
 		*/
       iCount=0;			/* zu schreibende Differnzbytes */
       pchDelta = pchCurrent;	/* Start des nächsten Differenzblocks */
-      while (this->iByte < iLastByte && (*pchCurrent) != (*pchPrev))
+      while (iByte < iLastByte && (*pchCurrent) != (*pchPrev))
        {
         pchCurrent++;
         pchPrev++;
-        this->iByte++;
+        iByte++;
         iCount++;
         	/**
         	Bei Überläufen wird ein Differenzblock
