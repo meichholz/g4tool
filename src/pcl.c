@@ -1,9 +1,9 @@
 /*
 *
 * $Author: eichholz $
-* $Revision: 1.1 $
+* $Revision: 1.2 $
 * $State: Exp $
-* $Date: 2001/12/30 10:11:50 $
+* $Date: 2002/02/05 16:26:16 $
 *
 * ************************************************************
 * g4tool
@@ -27,15 +27,15 @@
 
 /*
  ******************************************************************
- * WriteHeadPCL()
+ * g4tWriteHeadPCL(this,)
  ******************************************************************
  */
 
-BOOL WriteHeadPCL(FILE *f)
+BOOL g4tWriteHeadPCL(this,FILE *f)
  {
     	/* fprintf(f,"\x1B" "E"); */	/* Jobstart */
     	fprintf(f,"\x1B&l%dO",	/* Orientierung */
-    		bLandscape ? 1 : 0 );
+    		this->bLandscape ? 1 : 0 );
     	fprintf(f,
     		"\x1B&a0L"	/* Rand links weg */
     		"\x1B&l0E"	/* Rand oben weg */
@@ -44,32 +44,32 @@ BOOL WriteHeadPCL(FILE *f)
     		"\x1B*r1A"	/* ab ? (start graphics) */
     		"\x1B*b1Y"	/* Seed to 0 */
     		"\x1B*b3M"	/* directly compress! */
-    		, nPCLResolution
+    		, this->nPCLResolution
 		);
-  /* fprintf(stderr,"coding for %d dpi\n",nPCLResolution); */
+  /* fprintf(stderr,"coding for %d dpi\n",this->nPCLResolution); */
   return TRUE;
  }
  
 /*
  ******************************************************************
- * DumpPagePCL()
+ * g4tDumpPagePCL(this,)
  ******************************************************************
  */
 
-BOOL DumpPagePCL(FILE *f)
+BOOL g4tDumpPagePCL(this,FILE *f)
  {
  	/**
  	Diese Funktion ist im Grunde Dummy.
  	Sie fügt nur noch den Seitenabschluß
  	an die Ausgabe an.
  	*/
-  long lcchLine=lcchFullPageLine;
-  long liNextBlock=(cxPaper-1L)/8L;
+  long lcchLine=this->lcchFullPageLine;
+  long liNextBlock=(this->cxPaper-1L)/8L;
   while (liNextBlock>=0)
    {
     int y;
-    unsigned char *pu=pchFullPage+liNextBlock;
-    for (y=0; y<cyPaper; y++)
+    unsigned char *pu=this->pchFullPage+liNextBlock;
+    for (y=0; y<this->cyPaper; y++)
      {
       /* printf(.....) */
       pu+=lcchLine;
@@ -82,7 +82,7 @@ BOOL DumpPagePCL(FILE *f)
  
 /*
  ******************************************************************
- * FlushLine()
+ * g4tFlushLine(this,)
  *
  * Aus Geschwindigkeitsgründen kann der Code nicht besser
  * modularisiert werden.
@@ -92,7 +92,7 @@ BOOL DumpPagePCL(FILE *f)
  ******************************************************************
  */
 
-BOOL FlushLinePCL(FILE *f)	/* für Laserjet 300 DPI */
+BOOL g4tFlushLinePCL(this,FILE *f)	/* für Laserjet 300 DPI */
  {
   int	iWorkBit;
   int	iLastWorkBit;
@@ -104,9 +104,9 @@ BOOL FlushLinePCL(FILE *f)	/* für Laserjet 300 DPI */
   
   unsigned char achPCL[CCH_PCL_BUF];
   int	iPCL=0;
-  BOOL	bRaw=(iLine==yPaperOut+1);
+  BOOL	bRaw=(this->iLine==this->yPaperOut+1);
   		/* Die erste Zeile muß roh übertragen werden */
-  if (iLine<=yPaperOut) return TRUE;	/* aber davor NICHTS! */
+  if (this->iLine<=this->yPaperOut) return TRUE;	/* aber davor NICHTS! */
 #ifdef SUPPRESS_DELTA_PCL
   bRaw=TRUE;
 #endif
@@ -119,16 +119,16 @@ BOOL FlushLinePCL(FILE *f)	/* für Laserjet 300 DPI */
   	berechnet.
   	*/
 #ifdef SUPPORT_FULL_PAGE
-  iCurrent=iLine-1;
-  iPrev=iLine-2;
+  iCurrent=this->iLine-1;
+  iPrev=this->iLine-2;
 #else
-  iCurrent=(iLine-1) & 1;
-  iPrev=(iLine-2) & 1;
+  iCurrent=(this->iLine-1) & 1;
+  iPrev=(this->iLine-2) & 1;
 #endif
-  pchRef=pchCurrent=pchFullPage+lcchFullPageLine*iCurrent
-  		+(xPaperOut/8);
-  pchPrev=          pchFullPage+lcchFullPageLine*iPrev
-  		+(xPaperOut/8);
+  pchRef=pchCurrent=this->pchFullPage+this->lcchFullPageLine*iCurrent
+  		+(this->xPaperOut/8);
+  pchPrev=          this->pchFullPage+this->lcchFullPageLine*iPrev
+  		+(this->xPaperOut/8);
 
   	/**
   	vorsichtshalber nochmal nicht-Kompression verlangen,
@@ -136,19 +136,19 @@ BOOL FlushLinePCL(FILE *f)	/* für Laserjet 300 DPI */
   	*/
   if (bRaw) fprintf(f,"\x1B*b0M");
 	/**
-	Zuerst wird die neue Zeile (in abitWork) zu Bytes verpackt,
+	Zuerst wird die neue Zeile (in this->abitWork) zu Bytes verpackt,
 	und in den Seitenpuffer geschrieben.
  	(ob es den noch braucht, ist nebensächlich).
  	Bei Rohdatenübertragung (die erste Zeile zumindest)
  	werden die Bytes auch gleich in den PCL-Ausgabepuffer geschrieben.
 	*/
-  iLastWorkBit=cxPaperOut+xPaperOut;
-  for (iWorkBit=xPaperOut+1; iWorkBit<=iLastWorkBit; iWorkBit++) /* ohne Rand... */
+  iLastWorkBit=this->cxPaperOut+this->xPaperOut;
+  for (iWorkBit=this->xPaperOut+1; iWorkBit<=iLastWorkBit; iWorkBit++) /* ohne Rand... */
 
    {
     /** Der bei einigen Quellen auftretende rechte Ranstreifen
         wird explizit geweißelt! */
-    BOOL bBit=iWorkBit>cxPaper ? 0 : abitWork[iWorkBit];
+    BOOL bBit=iWorkBit>this->cxPaper ? 0 : this->abitWork[iWorkBit];
     uch=(uch<<1) | bBit;
     if (++cBits == 8)
      {
@@ -174,8 +174,8 @@ BOOL FlushLinePCL(FILE *f)	/* für Laserjet 300 DPI */
 	*/  
   if (!bRaw)
    {
-    int iByte=0;
-    int	iLastByte=(cxPaperOut+7)/8; /* hmmm... wg "+1" kann auch 8 sein */
+    int this->iByte=0;
+    int	iLastByte=(this->cxPaperOut+7)/8; /* hmmm... wg "+1" kann auch 8 sein */
     int	iCount;
     int iOffset;
     pchCurrent=pchRef;
@@ -184,18 +184,18 @@ BOOL FlushLinePCL(FILE *f)	/* für Laserjet 300 DPI */
     	Gleiche Bytes zählen, Differenzblock bestimmen
     	und das Ergebnis übertragen.
     	*/
-    while (iByte < iLastByte)
+    while (this->iByte < iLastByte)
      {
       		/**
 		Zähle gleiche Bytes. Die Aufteilung des Ergebnisses
 		wird später erledigt.
 		*/
       iOffset=0;
-      while (iByte < iLastByte && (*pchCurrent) == (*pchPrev))
+      while (this->iByte < iLastByte && (*pchCurrent) == (*pchPrev))
        {
         pchCurrent++;
         pchPrev++;
-        iByte++;
+        this->iByte++;
         iOffset++;
        }
       		/**
@@ -203,11 +203,11 @@ BOOL FlushLinePCL(FILE *f)	/* für Laserjet 300 DPI */
 		*/
       iCount=0;			/* zu schreibende Differnzbytes */
       pchDelta = pchCurrent;	/* Start des nächsten Differenzblocks */
-      while (iByte < iLastByte && (*pchCurrent) != (*pchPrev))
+      while (this->iByte < iLastByte && (*pchCurrent) != (*pchPrev))
        {
         pchCurrent++;
         pchPrev++;
-        iByte++;
+        this->iByte++;
         iCount++;
         	/**
         	Bei Überläufen wird ein Differenzblock
@@ -223,7 +223,7 @@ BOOL FlushLinePCL(FILE *f)	/* für Laserjet 300 DPI */
             iOut=31;
           iOffset-=31;
           achPCL[iPCL++]=(0xE0u | iOut );
-          while (iOffset>=255) /* böse Falle: es darf keine 255 übrigbleiben! */
+          while (iOffset>=255) /* this->böse Falle: es darf keine 255 übrigbleiben! */
            {
             achPCL[iPCL++]=0xFFu;
             iOffset-=255;
@@ -267,11 +267,11 @@ BOOL FlushLinePCL(FILE *f)	/* für Laserjet 300 DPI */
    	*/
   if (iPCL>CCH_PCL_BUF)
    {
-    fprintf(stderr,"warning: pcl buffer overflowed in %d (%d)\n",iLine,iPCL);
+    fprintf(stderr,"warning: pcl buffer overflowed in %d (%d)\n",this->iLine,iPCL);
    }
-  if (bDebugPCL)
-    fprintf(stderr,"debug: %d bytes in %d\n",iPCL,iLine);
-  fprintf(f,"\x1B*b%dW",iPCL);	/* EC *b war letztes */
+  if (this->bDebugPCL)
+    fprintf(stderr,"debug: %d bytes in %d\n",iPCL,this->iLine);
+  fprintf(f,"\x1B*this->b%dW",iPCL);	/* EC *this->b war letztes */
   fwrite(achPCL,iPCL,1,f);
   	/**
   	Nach der ersten Zeile wird auf Deltakompression

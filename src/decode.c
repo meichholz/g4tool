@@ -1,9 +1,9 @@
 /*
 *
 * $Author: eichholz $
-* $Revision: 1.2 $
+* $Revision: 1.3 $
 * $State: Exp $
-* $Date: 2002/02/04 17:06:12 $
+* $Date: 2002/02/05 16:26:16 $
 *
 * ************************************************************
 * g4tool
@@ -21,7 +21,7 @@
 * Hier wird eine G4-Zeile mit Hilfe des externen Gedächtnisses
 * nach aBitWork dekodiert.
 *
-* SetTables() macht Initialisierung der Tabellen.
+* g4tSetTables(this,) macht Initialisierung der Tabellen.
 * GetLine() holt Codes und übersetzt.
 *
 * Die Laufsteuerung erfolgt darüberhinaus extern.
@@ -31,14 +31,14 @@
 /**
 	Die Indizes beschreiben die virtuellen Pixel nach T.4-Spec.
 	Das bedeutet, daß das erste Pixel immer(!) weiß ist [Index 0],
-	und daß die Zeile von 1..cxPaper beschrieben wird.
+	und daß die Zeile von 1..this->cxPaper beschrieben wird.
 	
-	Die Variable "a" beschreibt dabei die jeweils zuletzt dekodierte
+	Die Variable "this->a" beschreibt dabei die jeweils zuletzt dekodierte
 	Position, initial also 0 (und WHITE).
 	
-	Die letzte Spalte (cxPaper) muß also auch kodiert werden (z.B. mit V(0).
+	Die letzte Spalte (this->cxPaper) muß also auch kodiert werden (z.B. mit V(0).
 	
-	In (a) steht demnach auch stets die lette kodierte Farbe zur Verfügung
+	In (this->a) steht demnach auch stets die lette kodierte Farbe zur Verfügung
 	(als Lookahead für die H-Codes beispielsweise).
 	
 */
@@ -61,7 +61,7 @@ static int GetBit(FILE *f)
     if (1!=fread(&chAkku,1,1,f))
       return -1;
     cAvailBits=8;
-    iByte++;
+    this->iByte++;
    }
   cAvailBits--; 
   nResult=(chAkku & 0x80)>>7;
@@ -92,8 +92,8 @@ static BOOL SkipBits(FILE *f, int cBits)
 static void SetBCodes(int a0, int *pb1, int *pb2)
  {
   int	i=a0+1; /* fuer schnellerer Rechnung!!! */
-  int color0=abitWork[a0];
-  int oldrefcol=abitRef[a0];
+  int color0=this->abitWork[a0];
+  int oldrefcol=this->abitRef[a0];
   	/**
   	Die korrekte Behandlug ndes Anfangs ist wegen der schwierigen
   	Definition des "changing Elements" etwas heikel.
@@ -110,22 +110,22 @@ static void SetBCodes(int a0, int *pb1, int *pb2)
   else
 #endif  
    {
-    if (i>cxPaper)
+    if (i>this->cxPaper)
      {
-      *pb1=cxPaper+1;
-      if (pb2) *pb2=cxPaper+1; /* zeitlich völlig unkritisch! */
+      *pb1=this->cxPaper+1;
+      if (pb2) *pb2=this->cxPaper+1; /* zeitlich völlig unkritisch! */
       return;
      }
    	/** changing element aufsuchen */
-    while ((i<=cxPaper) && (abitRef[i]==oldrefcol)) i++;
+    while ((i<=this->cxPaper) && (this->abitRef[i]==oldrefcol)) i++;
     	/** Gleiche Farben übergehen */
-    while ((i<=cxPaper) && (abitRef[i]==color0)) i++;
+    while ((i<=this->cxPaper) && (this->abitRef[i]==color0)) i++;
     *pb1=i;
    }
   if (pb2)
    {
     	/* Ungleiche Farben übergehen. */
-    while ((i<=cxPaper) && (abitRef[i]!=color0)) i++;
+    while ((i<=this->cxPaper) && (this->abitRef[i]!=color0)) i++;
     *pb2=i;
    }
  }
@@ -142,17 +142,17 @@ static void Vertical(int nType, int nOffset)
   int	i;
   BOOL	bValue;
   int nTotalOffset=((nType) ? 1 : -1)*nOffset; /* nType:1=R */
-  a0=a;
-  SetBCodes(a,&b1,NULL);
-  bValue=abitWork[a];
-  a=b1+nTotalOffset;
-  for (i=a0; i<a; i++)
-    abitWork[i]=bValue;
-  abitWork[a]=!bValue;
-  if (bDebugVerbose)
+  a0=this->a;
+  SetBCodes(this->a,&b1,NULL);
+  bValue=this->abitWork[this->a];
+  this->a=b1+nTotalOffset;
+  for (i=a0; i<this->a; i++)
+    this->abitWork[i]=bValue;
+  this->abitWork[this->a]=!bValue;
+  if (this->bDebugVerbose)
     fprintf(stderr,"<V%c(%d)> code detected (%d->%d)\n",
     	(nType ? 'R' : 'L'),
-    	nOffset, a0,a);
+    	nOffset, a0,this->a);
  }
 
 /*
@@ -165,22 +165,22 @@ static void Horizontal(int colFirst,int *cRuns)
  {
   int iColor=0;
   static char achCols[]="WB";
-  if (bDebugVerbose)
+  if (this->bDebugVerbose)
    {
     fprintf(stderr,"<H(%c%c,%d,%d) > found.\n",
     	achCols[colFirst],achCols[!colFirst],cRuns[0],cRuns[1]);
    }
   for (iColor=0; iColor<2; iColor++)
    {
-    int a0=a;
+    int a0=this->a;
     int i;
-    if (!a) { a++; a0++; }
-    a+=cRuns[iColor];
-    for (i=a0; i<a; i++)
-      abitWork[i]=colFirst;
+    if (!this->a) { this->a++; a0++; }
+    this->a+=cRuns[iColor];
+    for (i=a0; i<this->a; i++)
+      this->abitWork[i]=colFirst;
     colFirst=!colFirst;
    }
-  abitWork[a]=colFirst;
+  this->abitWork[this->a]=colFirst;
  }
 
 /*
@@ -193,17 +193,17 @@ static void Passcode(void)
  {
   int dummy,b2,i;
   int nColor;
-  SetBCodes(a,&dummy,&b2);
+  SetBCodes(this->a,&dummy,&b2);
   	/**
   	Bis zum neuen b2 wird das Feld in der Farbe (a0) verfüllt.
   	Das neue (a0) wird gleich mitverfüllt.
   	*/
-  nColor=abitWork[a];
-  for (i=a+1; i<=b2; i++)
-    abitWork[i]=nColor;
-  if (bDebugVerbose)
-    fprintf(stderr,"P for color %d at line %d (%d->%d)\n",nColor,iLine,a,b2);
-  a=b2;
+  nColor=this->abitWork[this->a];
+  for (i=this->a+1; i<=b2; i++)
+    this->abitWork[i]=nColor;
+  if (this->bDebugVerbose)
+    fprintf(stderr,"P for color %d at line %d (%d->%d)\n",nColor,this->iLine,this->a,b2);
+  this->a=b2;
  }
  
 /*
@@ -229,8 +229,8 @@ static BOOL GetSymbol(FILE *f, int *pnSymbol, BOOL *pbEOF)
     int nBit=GetBit(f);
     if (nBit<0)
      {
-      if (iLine<cyPaper || !bNoCheckEOL)
-        fprintf(stderr,"unexpected EOF at byte %d/%X\n",iByte,iByte);
+      if (this->iLine<this->cyPaper || !this->bNoCheckEOL)
+        fprintf(stderr,"unexpected EOF at byte %d/%X\n",this->iByte,iByte);
       *pbEOF=TRUE;
       return FALSE;
      }
@@ -267,7 +267,7 @@ static BOOL GetSymbol(FILE *f, int *pnSymbol, BOOL *pbEOF)
      {
       fprintf(stderr,"symbol overflow in line %d,"
       		" byte %d (%lx), skipping to EOL\n",
-      		iLine,iByte,ulSymbol);
+      		this->iLine,this->iByte,ulSymbol);
       bWaiting=TRUE;
       bLastEOL=FALSE;
       ulSymbol=1;
@@ -299,7 +299,7 @@ static BOOL GetColorRun(FILE *f, int iColor, int *pcRuns, BOOL *pbEOF)
     /* fprintf(stderr,"%d",nBit); */
     if (nBit<0)
      {
-      fprintf(stderr,"unexpected EOF at byte %d/%X\n",iByte,iByte);
+      fprintf(stderr,"unexpected EOF at byte %d/%X\n",this->iByte,iByte);
       *pbEOF=TRUE;
       return FALSE;
      }
@@ -313,14 +313,14 @@ static BOOL GetColorRun(FILE *f, int iColor, int *pcRuns, BOOL *pbEOF)
        }
       else
        {
-        fprintf(stderr,"Unexpected EOL at line %d\n",iLine);
+        fprintf(stderr,"Unexpected EOL at line %d\n",this->iLine);
         *pcRuns=-1;
         return FALSE;
        }
      }
     else
      {
-      TRunSpec	*prs=arsRuns[iColor];
+      TRunSpec	*prs=this->arsRuns[iColor];
       		/*
       		Die Bitmasken werden komplett für jede
       		Bitkombination durchgehechelt und die gefundenen
@@ -328,17 +328,17 @@ static BOOL GetColorRun(FILE *f, int iColor, int *pcRuns, BOOL *pbEOF)
       		Verbesserung: Binärsuche.
       		*/
       int i0=0;
-      int i1=acRuns[iColor]-1;
+      int i1=this->acRuns[iColor]-1;
       while (i0<=i1)
        {
         int i=(i0+i1)/2;
         unsigned int us=prs[i].bitMask;
-        if (bDebugShowRunComp)
+        if (this->bDebugShowRunComp)
           fprintf(stderr,"comparing: (%d,%d,%d) %04lX and %04Xd\n",
 		i0,i,i1, ulSymbol,us);
         if (us==ulSymbol)
          {
-          if (bDebugVerbose)
+          if (this->bDebugVerbose)
             fprintf(stderr,"Gefunden: %u for %lxh\n",
             		(unsigned int)prs[i].cPixel,
           		(long)ulSymbol);
@@ -366,7 +366,7 @@ static BOOL GetColorRun(FILE *f, int iColor, int *pcRuns, BOOL *pbEOF)
      {
       fprintf(stderr,"symbol overflow in line %d,"
       		" byte %d (%lx), phase %c, skipping to EOL\n",
-      		iLine,iByte,ulSymbol,
+      		this->iLine,this->iByte,ulSymbol,
       		(iColor==WHITE) ? 'W' : ((iColor==BLACK) ? 'B' : '?'));
       		/**
       		Es wird beim Fehler nicht lange gesucht, sondern gleich
@@ -392,7 +392,7 @@ BOOL GetLine(FILE *f)
   int	acCols[2];
   do
    {
-    if (a<0 || a>cxPaper)
+    if (this->a<0 || this->a>this->cxPaper)
      {
       fprintf(stderr,"oops: parameter runaway!");
       return FALSE;
@@ -412,13 +412,13 @@ BOOL GetLine(FILE *f)
         case SYM_VL3:	Vertical(0,3); break;
         case SYM_EXT:
 		fprintf(stderr,"<EXT> detected at %d/%X: not supported.\n",
-				iByte,iByte);
+				this->iByte,iByte);
 		bEOF=!SkipBits(f,3);
         	break;
         case SYM_H:
          	 {
-		  int colFirst=abitWork[a]; /* +1? */
-		  		/*!abitWork[a];*/
+		  int colFirst=this->abitWork[this->a]; /* +1? */
+		  		/*!this->abitWork[this->a];*/
         	  bError=!GetColorRun(f,colFirst,acCols,&bEOF);
         	  
         	  if (!bError)
@@ -428,14 +428,14 @@ BOOL GetLine(FILE *f)
          	 }
         	break;
         case SYM_EOFB:
-        	if (bDebugVerbose)
+        	if (this->bDebugVerbose)
         	  fprintf(stderr,"<EOFB> detected.\n");
         	bEOF=TRUE;
-        	iLine--;
+        	this->iLine--;
         	break;
         case SYM_EOL:
-         	iLine--;
-        	if (bDebugVerbose)
+         	this->iLine--;
+        	if (this->bDebugVerbose)
         	  fprintf(stderr,"<EOL> detected.\n");
         	if (bError)
         	  bEOF=TRUE;
@@ -444,7 +444,7 @@ BOOL GetLine(FILE *f)
         	fprintf(stderr,"unknown code...\n");
        }
      }
-    if (a>cxPaper) /* auch die letzte Spalte muß kodiert sein!!! */
+    if (this->a>this->cxPaper) /* auch die letzte Spalte muß kodiert sein!!! */
       bBreak=TRUE;
    } while (!bEOF && !bBreak &&
    		(nSymbol!=SYM_EOL) && (nSymbol!=SYM_EOFB));
@@ -453,7 +453,7 @@ BOOL GetLine(FILE *f)
 
 /*
  ******************************************************************
- * SetTables()
+ * g4tSetTables(this,)
  ******************************************************************
  */
 
@@ -464,7 +464,7 @@ BOOL GetLine(FILE *f)
 	
 	Der Code wird nach Codewort aufsteigend einsortiert.
 	*/
-BOOL SetTables(void)
+BOOL g4tSetTables(this,void)
  {
   int iColor, iRun;
   for (iColor=WHITE; iColor<=BLACK; iColor++)
@@ -474,7 +474,7 @@ BOOL SetTables(void)
     		Zuallererst wird die Tabelle gelöscht.
     		*/
     for (iRun=0; iRun<CRUNTABLE; iRun++)
-      arsRuns[iColor][iRun].bitMask=0;
+      this->arsRuns[iColor][iRun].bitMask=0;
       		/**
       		Dann erst geht es in die Mustertabelle.
       		*/
@@ -502,19 +502,19 @@ BOOL SetTables(void)
       		der Zielindex bestimmt.
       		*/
       for 	(iTarget=0;
-      		arsRuns[iColor][iTarget].bitMask
-      		&& arsRuns[iColor][iTarget].bitMask<usWord;
+      		this->arsRuns[iColor][iTarget].bitMask
+      		&& this->arsRuns[iColor][iTarget].bitMask<usWord;
       		iTarget++);
       		/**
       		Die oben liegenden Elemente werden hochgeschoben.
       		*/
       for (i=CRUNTABLE-1; i>iTarget; i--)
-        arsRuns[iColor][i]=arsRuns[iColor][i-1];
+        this->arsRuns[iColor][i]=this->arsRuns[iColor][i-1];
         	/**
         	Dann erst wird das neue Element eingeschrieben.
         	*/
-      arsRuns[iColor][iTarget].cPixel=arstSpecs[iColor][iRun].cPixel;
-      arsRuns[iColor][iTarget].bitMask=usWord;
+      this->arsRuns[iColor][iTarget].cPixel=arstSpecs[iColor][iRun].cPixel;
+      this->arsRuns[iColor][iTarget].bitMask=usWord;
       if (*pch)
        {
         fprintf(stderr,"Fehler in color %d, runlength %d.\n",
@@ -527,11 +527,11 @@ BOOL SetTables(void)
       fprintf(stderr,"Lookuptable overflow!\n");
       exit(2);
      }
-    acRuns[iColor]=iRun;
+    this->acRuns[iColor]=iRun;
  #ifdef DUMP_SPECS
     for (i=0; i<CRUNTABLE; i++)
       fprintf(stderr,"table %d, code=%04X, length=%d\n",
-      	iColor,arsRuns[iColor][i].bitMask,arsRuns[iColor][i].cPixel);
+      	iColor,this->arsRuns[iColor][i].bitMask,this->arsRuns[iColor][i].cPixel);
  #endif
    }
   return TRUE;
@@ -539,11 +539,11 @@ BOOL SetTables(void)
 
 /*
  ******************************************************************
- * DecodePage()
+ * g4tDecodePage(this,)
  ******************************************************************
  */
 
-int DecodePage(void)
+int g4tDecodePage(this,void)
  {
   int i;
   BOOL bAbort=FALSE;
@@ -556,37 +556,37 @@ int DecodePage(void)
 
 	return : 0 auf ok, 1 bei Fehler.
   	*/
-  if (bVerbose)
+  if (this->bVerbose)
     fprintf(stderr,"decoding...\n");
-  if (!bRotate)
-    WriteHeader(stdout);
-  iLine=1;
-  a=0;
-  abitRef=aabitBuffers[1];
-  abitWork=aabitBuffers[0];
-  iBuffer=0;
-  CenterPage();
-  for (i=0; i<cxPaper+3; abitWork[i]=abitRef[i]=WHITE) i++;
+  if (!this->bRotate)
+    g4tWriteHeader(this,stdout);
+  this->iLine=1;
+  this->a=0;
+  this->abitRef=this->aabitBuffers[1];
+  this->abitWork=this->aabitBuffers[0];
+  this->iBuffer=0;
+  g4tCenterPage(this,);
+  for (i=0; i<this->cxPaper+3; this->abitWork[i]=this->abitRef[i]=WHITE) i++;
   while (!bAbort && GetLine(stdin))
    {
-    if (bDebugVerbose)
-      fprintf(stderr,"setting line %d...\n",iLine);
+    if (this->bDebugVerbose)
+      fprintf(stderr,"setting line %d...\n",this->iLine);
       		/**
       		Erst wird die neu berechnete Zeile ausgeworfen,
       		und erst dann werden die Puffer umgeschaltet.
       		So kann ein Flusher auch die Referenzzeile
       		mitverwenden.
       		*/
-    if (iLine<CY_MAX)
-      if (bRotate)
-        EncodePageLine();
+    if (this->iLine<CY_MAX)
+      if (this->bRotate)
+        g4tEncodePageLine(this,);
       else
-        FlushLine(stdout);
-    iBuffer=(iBuffer+1) & 1;
-    abitRef=abitWork;
-    abitWork=aabitBuffers[iBuffer];
-    iLine++;
-    a=0;
+        g4tFlushLine(this,stdout);
+    this->iBuffer=(this->iBuffer+1) & 1;
+    this->abitRef=this->abitWork;
+    this->abitWork=this->aabitBuffers[this->iBuffer];
+    this->iLine++;
+    this->a=0;
     /**
     Die folgende Löschung im Schreibpuffer ist eigentlich merkwürdig
     deutet auf ein Designproblem der Aktionsprozeduren
@@ -594,20 +594,20 @@ int DecodePage(void)
     
     Ein Schwarz-Start wird durch VL(0) kodiert.
     */
-    abitWork[0]=WHITE; /*abitRef[1];*/ /* nächste Farbe ist Weiß */
-    abitRef[0]=WHITE;
-    if (iLine>cyPaper && bNoCheckEOL) bAbort=TRUE;
+    this->abitWork[0]=WHITE; /*this->abitRef[1];*/ /* nächste Farbe ist Weiß */
+    this->abitRef[0]=WHITE;
+    if (this->iLine>this->cyPaper && this->bNoCheckEOL) bAbort=TRUE;
    }
-  if (!bRotate)
-    ClosePage(stdout);   
+  if (!this->bRotate)
+    g4tClosePage(this,stdout);   
    	/**
    	Die Anzahl der Zeilen wird geprüft. Die wird bei einem
    	Formatfehler meist abweichen.
    	*/
-  if (cyPaper+1!=iLine)
-    if (!bNoLineWarnings)
+  if (this->cyPaper+1!=this->iLine)
+    if (!this->bNoLineWarnings)
      {
-      fprintf(stderr,"got %d lines instead of %d\n",iLine-1,cyPaper);
+      fprintf(stderr,"got %d lines instead of %d\n",this->iLine-1,this->cyPaper);
       return 1;
      }
   return 0;

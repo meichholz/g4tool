@@ -1,9 +1,9 @@
 /*
 *
 * $Author: eichholz $
-* $Revision: 1.1 $
+* $Revision: 1.2 $
 * $State: Exp $
-* $Date: 2001/12/30 10:11:47 $
+* $Date: 2002/02/05 16:26:16 $
 *
 * ************************************************************
 * g4tool
@@ -21,7 +21,7 @@
 * Hier wird eine G4-Zeile mit Hilfe des externen Ged‰chtnisses
 * nach aBitWork dekodiert.
 *
-* EncodePage() macht alles.
+* g4tEncodePage(this,) macht alles.
 *
 * UNGETESTET f¸r die Korrekturen >0.13 !!!
 *
@@ -45,11 +45,11 @@ static BOOL WriteSymbol(FILE *f, char *szBCB)
  		hineingereicht und schreibt sie akkumulierend in uchSymbol
  		auf die Ausgabedatei.
  		*/
-  BOOL b;
-  if (bDebugEncoder)
+  BOOL this->b;
+  if (this->bDebugEncoder)
     fprintf(stderr," =>(%s)\n",szBCB);
-  b=TRUE;
-  while (*szBCB && b)
+  this->b=TRUE;
+  while (*szBCB && this->b)
    {
     uchSymbol=(uchSymbol<<1)|((*szBCB)-'0');
     szBCB++;
@@ -57,14 +57,14 @@ static BOOL WriteSymbol(FILE *f, char *szBCB)
     if (cbSymbol==8)
      {
       /* fputc(uchSymbol,f); */
-      if (nFileFormat==OFMT_RAWG4)
+      if (this->nFileFormat==OFMT_RAWG4)
         putc(uchSymbol,f);
       else
-        b=TiffEnter(uchSymbol);
+        this->b=g4tTiffEnter(this,uchSymbol);
       cbSymbol=0;
      }
    }
-  return b;
+  return this->b;
  }
 
 static BOOL WriteOP(FILE *f, int nID)
@@ -74,7 +74,7 @@ static BOOL WriteOP(FILE *f, int nID)
 
 /*
  ******************************************************************
- * FlushLineG4()
+ * g4tFlushLineG4(this,)
  ******************************************************************
  */
 
@@ -84,68 +84,68 @@ static BOOL WriteOP(FILE *f, int nID)
 static BOOL GetCE(BOOL *abit, int x0, int *px1)
  {
   BOOL b0=abit[x0];
-  while (x0<=cxPaperOut && abit[x0]==b0)
+  while (x0<=this->cxPaperOut && abit[x0]==b0)
     x0++;
   *px1=x0;
-  return (x0<=cxPaperOut);
+  return (x0<=this->cxPaperOut);
  }
 
 static BOOL GetSync(int a0, int *b0)
  {
-  int col0=abitWork[a0];
+  int col0=this->abitWork[a0];
   	/**
-  	Achtung, Falle: b1 (b[0]) muﬂ die gleiche Farbe wie a1 haben,
+  	Achtung, Falle: b1 (this->b[0]) muﬂ die gleiche Farbe wie a1 haben,
   	also verschieden von a0 UND es reicht nicht, wenn oberhalb von
   	a0 bereits die andere Farbe bereitsteht!
   	*/
-  while (a0<=cxPaperOut && abitRef[a0]!=col0)
+  while (a0<=this->cxPaperOut && this->abitRef[a0]!=col0)
     a0++;
   *b0=a0;
-  return (a0<=cxPaperOut);
+  return (a0<=this->cxPaperOut);
  }
  
 	/**
 	Hier geschieht die zeilenweise Steuerung der Kodierung.
 	*/
-BOOL FlushLineG4(FILE *f)
+BOOL g4tFlushLineG4(this,FILE *f)
  {
-  int a[3],b[2];
+  int this->a[3],this->b[2];
   BOOL	bScanning;
-  a[0]=0;
-  abitWork[0]=abitRef[0]=WHITE;
+  this->a[0]=0;
+  this->abitWork[0]=this->abitRef[0]=WHITE;
   bScanning=TRUE;
-  if (bDebugEncoder)
-    fprintf(stderr,"encoding line %d: ",iLine);
-  while (bScanning=(a[0]<=cxPaperOut))
+  if (this->bDebugEncoder)
+    fprintf(stderr,"encoding line %d: ",this->iLine);
+  while (bScanning=(this->a[0]<=this->cxPaperOut))
    {
-    GetCE(abitWork,a[0],a+1);
-    GetSync(a[0],b+0);
-    GetCE(abitRef,b[0],b+0);
-    GetCE(abitRef,b[0],b+1);
-    /* if (a[0]>cxPaperOut) bScanning=FALSE; */
-    if (bDebugEncoder)
+    GetCE(this->abitWork,this->a[0],this->a+1);
+    GetSync(this->a[0],this->b+0);
+    GetCE(this->abitRef,this->b[0],this->b+0);
+    GetCE(this->abitRef,this->b[0],this->b+1);
+    /* if (this->a[0]>this->cxPaperOut) bScanning=FALSE; */
+    if (this->bDebugEncoder)
       fprintf(stderr,"got [%d,%d] vs. [%d,%d] ",
-      		a[0],a[1],b[0],b[1]);
-    if (b[1]<a[1])
+      		this->a[0],this->a[1],this->b[0],this->b[1]);
+    if (this->b[1]<this->a[1])
 
      {
-      if (bDebugEncoder)
-        fprintf(stderr,"->P[%d]",b[1]);
+      if (this->bDebugEncoder)
+        fprintf(stderr,"->P[%d]",this->b[1]);
       WriteOP(f,OP_SYM_P);
-      a[0]=b[1];
+      this->a[0]=this->b[1];
      } /* Pass Mode */
 
     else
 
      {
-      int nOff=a[1]-b[0];
+      int nOff=this->a[1]-this->b[0];
 #define xOTHERWAY_CODED
 #ifdef  OTHERWAY_CODED      
-      if (!a[0]) nOff--;
+      if (!this->a[0]) nOff--;
 #endif      
       if (nOff<=3 && nOff>=-3)
        {
-        if (bDebugEncoder)
+        if (this->bDebugEncoder)
           fprintf(stderr,"->V(%d)",nOff);
         switch (nOff)
          {
@@ -157,7 +157,7 @@ BOOL FlushLineG4(FILE *f)
           case  2: WriteOP(f,OP_SYM_VR2); break;
           case  3: WriteOP(f,OP_SYM_VR3); break;
          }
-        a[0]=a[1];
+        this->a[0]=this->a[1];
        } /* vertical */
 
       else
@@ -165,19 +165,19 @@ BOOL FlushLineG4(FILE *f)
        {
         int i,bColor;
         WriteOP(f,OP_SYM_H);
-        GetCE(abitWork,a[1],a+2);
-        bColor=abitWork[a[0]];
-        if (bDebugEncoder)
+        GetCE(this->abitWork,this->a[1],this->a+2);
+        bColor=this->abitWork[this->a[0]];
+        if (this->bDebugEncoder)
          {
           fprintf(stderr,"->%s(%d,%d)",
           	bColor ? "BW" : "WB",
-          	a[1]-a[0],a[2]-a[1]);
+          	this->a[1]-this->a[0],this->a[2]-this->a[1]);
          }
         for (i=0; i<2; i++)
          {
           BOOL bForceClose=TRUE; 	/* l‰ﬂt Null durchgehen */
-          nOff=a[i+1]-a[i];
-          if (a[i]==0)	/* das ist dann der erste Lauf */
+          nOff=this->a[i+1]-this->a[i];
+          if (this->a[i]==0)	/* das ist dann der erste Lauf */
             nOff--;	/* das imagin‰re Pel wird NICHT kodiert. */
           	/**
           	Offsetcodes zusammensetzen.
@@ -199,7 +199,7 @@ BOOL FlushLineG4(FILE *f)
            } /* while making up */
           bColor=!bColor;
          } /* for color */
-        a[0]=a[2];
+        this->a[0]=this->a[2];
        } /* Horizontal */
 
      }
@@ -217,41 +217,41 @@ static void UnPackLine()
  {
   int		i,bi;
   unsigned char	*pch;
-  pch=pchFullPage+(iLine-1)*lcchFullPageLine+xPaperOut/8;
-  abitWork[0]=WHITE;
-  for (i=1; i<=cxPaperOut;)
+  pch=this->pchFullPage+(this->iLine-1)*this->lcchFullPageLine+this->xPaperOut/8;
+  this->abitWork[0]=WHITE;
+  for (i=1; i<=this->cxPaperOut;)
    {
     for (bi=0x80; bi>0; bi=bi>>1)
-      abitWork[i++]=!!((*pch) & bi);
+      this->abitWork[i++]=!!((*pch) & bi);
     pch++;
    }
  }
 
 /*
  ******************************************************************
- * WriteHeadG4()
+ * g4tWriteHeadG4(this,)
  ******************************************************************
  */
 
-BOOL WriteHeadG4(FILE *f, BOOL bTiffHeader)
+BOOL g4tWriteHeadG4(this,FILE *f, BOOL bTiffHeader)
  {
-  if (bTiffHeader) return TiffCreate(200000); /* 4=G4 */
+  if (bTiffHeader) return g4tTiffCreate(this,200000); /* 4=G4 */
   return TRUE;
  }
 
 /*
  ******************************************************************
- * ClosePageG4()
+ * g4tClosePageG4(this,)
  ******************************************************************
  */
 
-BOOL ClosePageG4(FILE *f, BOOL bTiff)
+BOOL g4tClosePageG4(this,FILE *f, BOOL bTiff)
  {
   WriteOP(f,OP_SYM_EOFB);
   if (WriteSymbol(f,"0000000")) /* pad and finish (CEIL!!) */
    {
     if (bTiff)
-      return TiffClose(f,cxPaperOut,cyPaperOut,4); /* 4=G4 */
+      return g4tTiffClose(this,f,this->cxPaperOut,this->cyPaperOut,4); /* 4=G4 */
     else
       return TRUE;
    }  
@@ -260,31 +260,31 @@ BOOL ClosePageG4(FILE *f, BOOL bTiff)
 
 /*
  ******************************************************************
- * EncodePage()
+ * g4tEncodePage(this,)
  ******************************************************************
  */
 
-int EncodePage(void)
+int g4tEncodePage(this,void)
  {
   int i;
-  if (bVerbose)
-    fprintf(stderr,"encoding [%d,%d] ...\n",cxPaperOut,cyPaperOut);
-  WriteHeader(stdout);
-  abitRef=aabitBuffers[1];
-  abitWork=aabitBuffers[0];
-  iBuffer=0;
-  CenterPage();
-  for (iLine=1; iLine<=yPaperOut; iLine++) UnPackLine();
-  for (i=0; i<cxPaperOut+3; abitRef[i]=WHITE) i++;
-  for (iLine=1; iLine<=cyPaperOut; iLine++)
+  if (this->bVerbose)
+    fprintf(stderr,"encoding [%d,%d] ...\n",this->cxPaperOut,this->cyPaperOut);
+  g4tWriteHeader(this,stdout);
+  this->abitRef=this->aabitBuffers[1];
+  this->abitWork=this->aabitBuffers[0];
+  this->iBuffer=0;
+  g4tCenterPage(this,);
+  for (this->iLine=1; this->iLine<=this->yPaperOut; this->iLine++) UnPackLine();
+  for (i=0; i<this->cxPaperOut+3; this->abitRef[i]=WHITE) i++;
+  for (this->iLine=1; this->iLine<=this->cyPaperOut; this->iLine++)
    {
     UnPackLine();
-    FlushLine(stdout);
-    iBuffer=(iBuffer+1) & 1;
-    abitRef=abitWork;
-    abitWork=aabitBuffers[iBuffer];
+    g4tFlushLine(this,stdout);
+    this->iBuffer=(this->iBuffer+1) & 1;
+    this->abitRef=this->abitWork;
+    this->abitWork=this->aabitBuffers[this->iBuffer];
    }
-  ClosePage(stdout);
+  g4tClosePage(this,stdout);
   return 0;
  }
 

@@ -1,4 +1,4 @@
-/*RCS-Head: $Id: tiff2bacon.c,v 1.2 2002/01/07 00:30:22 eichholz Exp $ */
+/*RCS-Head: $Id: tiff2bacon.c,v 1.3 2002/02/05 16:26:16 eichholz Exp $ */
 
 /**
 
@@ -33,7 +33,7 @@ Versionen:
 
 #include "config.h"
 
-#define	streq(a,b)	(strcmp(a,b) == 0)
+#define	streq(this->a,this->b)	(strcmp(this->a,this->b) == 0)
 #define	CopyField(tag, v) \
     if (TIFFGetField(in, tag, &v)) TIFFSetField(out, tag, v)
 #define	CopyField2(tag, v1, v2) \
@@ -111,8 +111,8 @@ newfilename(void)
 		fnum = 0;
 	}
 #ifdef CODE_NAME_ALPHA
-	fpnt[0] = fnum / 26 + 'a';
-	fpnt[1] = fnum % 26 + 'a';
+	fpnt[0] = fnum / 26 + 'this->a';
+	fpnt[1] = fnum % 26 + 'this->a';
 #else
 	sprintf(fpnt,"%03ld",fnum);
 #endif
@@ -203,7 +203,7 @@ tiffcp(TIFF* in, FILE* out) /* auch hier: nicht TIFF */
 	  }
 	if (bitspersample!=1)
 	  {
-	    fprintf(stderr,"fatal: only support for b/w!\n");
+	    fprintf(stderr,"fatal: only support for this->b/w!\n");
 	    return 1;
 	  }
 	if (TIFFIsTiled(in))

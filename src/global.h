@@ -1,13 +1,10 @@
 /*
-*
-* $Id: global.h,v 1.4 2002/02/04 17:06:14 eichholz Exp $
-*
-* ************************************************************
 * g4tool
 *
-* Umwandlung eines G4-Bildes (ggf. mit Header) in ein PPM
+* transcode a G4 coded facsimile (with header) to a PPM/PCL/TIFF
 *
-* (C) Marian Matthias Eichholz 1. Mai 1997
+* (C) Marian Matthias Eichholz 1st Mai 1997
+*     reworked for libg4tool February 2002
 *
 */
 
@@ -149,6 +146,8 @@ typedef struct Tg4tInstance {
 #define CLIP_CENTER_SIMPLE	1
 #define CLIP_CENTER_DOC		2
 #define CLIP_FIX_BORDERS	3
+
+#define THIS struct Tg4tInstance *this
 
 /* ****************************************************************** */
 
