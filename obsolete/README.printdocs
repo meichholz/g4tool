@@ -1,0 +1,14 @@
+Status
+------
+
+. Kann auf archie einen Bacon-Baum ausdrucken.
+. Arbeitet auf PS via settrays.
+. Druckt auf PCL/PJL (mit lprpages zusammen).
+. Druckt Duplex/Nichtduplex-
+. Druckt Seitengruppen (mit prilist zusammen)
+. Druckt Einzeldokumente.
+. Frontend: prilist
+. Backend: lprpages und g4tool
+
+TODO
+----

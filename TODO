@@ -1,0 +1,39 @@
+TODO zum G4-Tool
+================
+
+ 5 .5.1997
+25.11.1997
+
+Unschönheiten:
+--------------
+
+- Das "Skip to EOL" ist eigentlich obsolet.
+
+Fehler
+------
+
+- Der PCL-Encoder hat einen Fehler, der je nach rechtem Rand zu Chaos
+  mitten in der Seite führt. Vermutlich Probleme am Schleifenabbruch.
+  
+  fixed (-0.12)
+  
+- Der G4-Decoder überträgt falsche Daten aus der Referenzzeile in die
+  Arbeitszeile. Bit [1] muß daher explizit geweißelt werden.
+  fixed ? (-0.12)
+
+Wünsche:
+--------
+
+3 - Ablage in gepacktem Bitfeld als ganzes Bild.
+
+4 - Abbruch bei cBits>14
+
+5 - Int16-compliant coding in Codesuche.
+
+6 - G3-1D-Bearbeitung.
+
+7 - Kompaktere Debugausgabe.
+
+8 - Dateiangabe auf Kommandozeile (wg. TIFF).
+
+9 - Test des TIFF-Teils.

@@ -1,0 +1,20 @@
+FiltG4
+======
+
+Wie man einen Job testet
+------------------------
+
+Mit dem einmalig umgelegten Schalter "bLogJob" kann im Verzeichnis "jobs"
+ein eingehender Job ausgeschrieben werden.
+
+Als Root kann er "chown me" werden.
+
+Der Schalter wird wieder zurückgesetzt.
+
+Nun kann filtg4 mit Modifikationen direkt geprüft werden.
+Der Parameter "HURGA" verhindert die Benutzung der Spoolverzeichnisse für
+Zwischendateien etc. Alle Arbeitsdateien sind dann lokal.
+
+	$ filtg4 HURGA < jobs/lpd..... >t
+
+In "t" befindet sich dann die Druckerlitanei.
