@@ -1,9 +1,9 @@
 /*
 *
 * $Author: eichholz $
-* $Revision: 1.1 $
+* $Revision: 1.2 $
 * $State: Exp $
-* $Date: 2001/12/30 10:11:47 $
+* $Date: 2002/02/04 17:06:12 $
 *
 * ************************************************************
 * g4tool
@@ -484,7 +484,7 @@ BOOL SetTables(void)
     		iRun++)
      {
       int	cBits=0;
-      USHORT	usWord=1;
+      unsigned short usWord=1;
       int	iTarget=iRun;
       		/**
       		Erst mal wird das Codewort, vorn durch eine

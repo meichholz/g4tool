@@ -1,9 +1,9 @@
 /*
 *
 * $Author: eichholz $
-* $Revision: 1.1 $
+* $Revision: 1.2 $
 * $State: Exp $
-* $Date: 2001/12/30 10:11:50 $
+* $Date: 2002/02/04 17:06:17 $
 *
 * ************************************************************
 * g4tool
@@ -17,8 +17,6 @@
 #define DEFINE_VARS
 
 #include "global.h"
-
-static int	cchHeader;
 
 #define USAGE \
      "usage: g4tool { options } <infile >outfile\n\n" \
@@ -220,7 +218,8 @@ BOOL ClosePage(FILE *f)
  ******************************************************************
  */
 
-int GetOptions(int argc, char **argv)
+static int g4tGetOptions(struct Tg4tInstance *this, int *pcchHeader,
+			 int argc, char **argv)
  {
   char chOpt;
   bFullPage=FALSE;
@@ -236,7 +235,6 @@ int GetOptions(int argc, char **argv)
   bRotate=FALSE;
   bVerbose=FALSE;
   bNoCheckEOL=FALSE;
-  cchHeader=0;
   while (EOF!=(chOpt=getopt(argc,argv,"VrvHMCcplbs:H:d:w:h:o:W:P:")))
    {
     switch (chOpt)
@@ -290,7 +288,7 @@ int GetOptions(int argc, char **argv)
       case 'c': nClipType=CLIP_CENTER_DOC; break;
       case 'C': nClipType=CLIP_CENTER_SIMPLE; break;
       case 'M': nClipType=CLIP_FIX_BORDERS; break;
-      case 's': cchHeader=atoi(optarg); break;
+      case 's': *pcchHeader=atoi(optarg); break;
       case 'r': bRotate=bFullPage=TRUE; break;
       case 'V': printf("g4tool v" VERSION "\n"); exit(0);
       case 'v': bVerbose=TRUE; break;
@@ -456,26 +454,53 @@ int RotatePage(void)
 
 /*
  ******************************************************************
+ *                             g4tInit() and g4tExit()
+ ******************************************************************
+ */
+
+struct Tg4tInstance *g4tInit(void)
+{
+  struct Tg4tInstance *this=calloc(1,sizeof(struct Tg4tInstance));
+  if (this)
+    g4tSetTables(this);
+  return this;
+}
+
+void g4tExit(struct Tg4tInstance *this);
+{
+  if (this)
+    {
+      if (pchFullPage)
+	free(pchFullPage);
+      free(this);
+    }
+  
+}
+
+/*
+ ******************************************************************
  *                             main()
  ******************************************************************
  */
 
 int main(int argc, char **argv)
  {
-  int	i;
+  int	i,cchHeader;
+  struct Tg4tInstance *this=g4tInit();
   InitGlobal();
-  if (!SetTables())
+  if (!g4tSetTables(this))
    {
     fprintf(stderr,"Error translating tables!\n");
     exit(1);
    }
-  i=GetOptions(argc,argv);
+  cchHeader=0;
+  i=g4tGetOptions(this,&cchHeader,argc,argv);
   if (i) return i;
   if (bVerbose)
     fprintf(stderr,"*** g4 decoder/encoder v" VERSION" by Marian Eichholz 1997 ***\n\n");
   if (bBacon)
    {
-    iByte=WalkBacon(stdin); /* was hat es bloss mit dem iByte auf sich? */
+    iByte=g4tWalkBacon(this,stdin); /* was hat es bloss mit dem iByte auf sich? */
     if (iByte!=256)
      {
       fprintf(stderr,"fatal: error reading BACON header!\n");
@@ -499,6 +524,7 @@ int main(int argc, char **argv)
       return 1;
      }
    }
+  
    		/**
    		Initialisiere die Puffer und Arbeitsparameter.
    		*/
@@ -530,9 +556,7 @@ int main(int argc, char **argv)
    	Der Speicher wird freigegeben und andere Aufräumarbeiten
    	werden durchgeführt.
    	*/
-  if (pchFullPage)
-    free(pchFullPage);
+  g4tExit(this);
   return i;
  }
-/* $Extended$File$Info$
- */
+

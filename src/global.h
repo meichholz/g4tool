@@ -1,6 +1,6 @@
 /*
 *
-* $Id: global.h,v 1.3 2002/01/07 00:30:22 eichholz Exp $
+* $Id: global.h,v 1.4 2002/02/04 17:06:14 eichholz Exp $
 *
 * ************************************************************
 * g4tool
@@ -13,6 +13,9 @@
 
 /* Revisionsgeschichte siehe <Revision> */
 
+#ifndef H_GLOBAL
+#define H_GLOBAL
+
 #if HAVE_CONFIG_H
 #	include "config.h"
 #endif
@@ -23,11 +26,11 @@
 #include <ctype.h>
 #include <unistd.h>
 
-typedef unsigned short	USHORT;
-typedef int		BOOL;
+#include "g4tool.h"
 
-#define	TRUE	1
-#define	FALSE	0
+#define BOOL    G4T_BOOL
+#define TRUE    1
+#define FALSE   0
 
 #define	BLACK	1
 #define WHITE	0
@@ -41,8 +44,6 @@ typedef int		BOOL;
   Die folgenden Setzungen gehen direkt in die Pufferberechnung und skalieren
   im MB-Sektor, also sparsam. Die Settings sollten für A4 600x600 reichen.
 */
-#define		CX_MAX	5000
-#define		CY_MAX	8000
 
 #define SYM_P	0x0011ul
 #define SYM_H	0x0009ul
@@ -87,8 +88,8 @@ typedef struct {
 extern TTemplRunSpec *arstSpecs[3];
 
 typedef struct {
-	short	cPixel;
-	USHORT	bitMask;
+	short	        cPixel;
+	unsigned short	bitMask;
 	} TRunSpec;
 	
 /*
@@ -96,35 +97,47 @@ typedef struct {
 				cY=3507-2*50
 */
 
+#define		Y_LAST_LINE	2
+#define		CCH_PCL_BUF	10000
 #define		CX_MAX_A4	2380
 #define		CY_MAX_A4	3407
-
-GLOBAL int	cxPaper,cyPaper;
-GLOBAL int	xPaperOut;	/* Offset des ersten Ausgabepixels */
-GLOBAL int	cxPaperOut;	/* Größe des Ausgabepuffers */
-GLOBAL int	yPaperOut;	/* das Gleiche für die Höhe */
-GLOBAL int	cyPaperOut;
-
 #define		CRUNTABLE	120
 
-GLOBAL TRunSpec	arsRuns[2][CRUNTABLE];
-GLOBAL int	acRuns[2];
 
-#define		Y_LAST_LINE	2
+typedef struct Tg4tInstance {
+  int	cxPaper,cyPaper;
+  int	xPaperOut;	/* Offset des ersten Ausgabepixels */
+  int	cxPaperOut;	/* Größe des Ausgabepuffers */
+  int	yPaperOut;	/* das Gleiche für die Höhe */
+  int	cyPaperOut;
+  int	acRuns[2];
+  TRunSpec	arsRuns[2][CRUNTABLE];
+  BOOL	        aabitBuffers[Y_LAST_LINE][CX_MAX+5];
+  BOOL	        *abitRef,*abitWork; /* only pointer */
+  int	        iBuffer;
+  unsigned char	*pchFullPage;
+  long		lcchFullPageLine;
+  long		lcFullPageLines;
 
-#define		CCH_PCL_BUF	10000
+  BOOL		bFullPage;
+  BOOL		bLandscape;
+  BOOL		bRotate;
+  int		nFileFormat;
 
-GLOBAL BOOL		aabitBuffers[Y_LAST_LINE][CX_MAX+5];
-GLOBAL BOOL		*abitRef,*abitWork;
-GLOBAL int		iBuffer;
+  int		iLine,iByte;
+  int		a,b;
 
-GLOBAL unsigned char	*pchFullPage;
-GLOBAL long		lcchFullPageLine;
-GLOBAL long		lcFullPageLines;
-
-GLOBAL BOOL		bFullPage;
-GLOBAL BOOL		bLandscape;
-GLOBAL BOOL		bRotate;
+  BOOL		bNoLineWarnings;
+  BOOL		bDebugShowRunComp;
+  BOOL		bDebugVerbose;
+  BOOL		bBacon;
+  BOOL		bDebugPCL;
+  int		nClipType;
+  BOOL		bVerbose;
+  BOOL		bDebugEncoder;
+  BOOL		bNoCheckEOL;
+  int		nPCLResolution;
+};
 
 #define		OFMT_PBM	1
 #define		OFMT_TIFF	2
@@ -132,60 +145,11 @@ GLOBAL BOOL		bRotate;
 #define		OFMT_G4		4
 #define		OFMT_RAWG4	5
 
-GLOBAL int		nFileFormat;
-
-GLOBAL int		iLine,iByte;
-GLOBAL int		a,b;
-
-GLOBAL BOOL		bNoLineWarnings;
-GLOBAL BOOL		bDebugShowRunComp;
-GLOBAL BOOL		bDebugVerbose;
-GLOBAL BOOL		bBacon;
-GLOBAL BOOL		bDebugPCL;
-GLOBAL int		nClipType;
-
 #define	CLIP_NONE		0
 #define CLIP_CENTER_SIMPLE	1
 #define CLIP_CENTER_DOC		2
 #define CLIP_FIX_BORDERS	3
 
-GLOBAL BOOL		bVerbose;
-GLOBAL BOOL		bDebugEncoder;
-GLOBAL BOOL		bNoCheckEOL;
-GLOBAL int		nPCLResolution;
-
 /* ****************************************************************** */
 
-/** MAIN */
-
-void CenterPage(void);
-BOOL WriteHeader(FILE *f);
-BOOL FlushLine(FILE *f);
-BOOL ClosePage(FILE *f);
-void EncodePageLine(void);
-
-/* PCL */
-
-BOOL WriteHeadPCL(FILE *f);
-BOOL DumpPagePCL(FILE *f);
-BOOL FlushLinePCL(FILE *f);
-
-/* ENCODE */
-
-BOOL WriteHeadG4(FILE *f, BOOL bTiff);
-BOOL ClosePageG4(FILE *f, BOOL bTiff);
-BOOL EncodePage();
-BOOL FlushLineG4(FILE *f);
-
-/* DECODE */
-
-BOOL DecodePage();
-BOOL SetTables(void);
-
-/* TIFF */
-
-BOOL TiffEnter(unsigned char uch);
-BOOL TiffClose(FILE *f, int cx, int cy, int idCompression);
-BOOL TiffCreate(long lcchEstimated);
-/* $Extended$File$Info$
- */
+#endif
