@@ -1,3 +1,10 @@
+2002-02-11  Marian Eichholz <eichholz@computer.org>
+	* most relevant constants in global.h are not in g4tool.h
+	  with G4 prefix.
+	* Some fixes from the sm3600 project are backported.
+	* the real PCL printable area is extended according to my LJ1200.
+	* CenterPage() should work with different PCL resolutions.
+
 2002-02-07  Marian Eichholz <eichholz@computer.org>
 	* some fixes in tiff2bacon.c ("this->")
 	* same fixes in pcl.c
