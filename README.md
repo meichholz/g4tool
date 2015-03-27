@@ -2,6 +2,11 @@
 
 This is g4tool. And this README is not ready after years. Shame on me.
 
+## Building
+
+With GNU autoconf, just `sh bootstrap.sh`, configure and go.
+You need Sam Leffler's `libtiff` in the standard search path.
+
 ## Todo
 
 Further steps towards library access.

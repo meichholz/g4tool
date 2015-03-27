@@ -1,3 +1,7 @@
+# sh bootstrap.sh -c : cleanup and stop
+# sh bootstrap.sh : cleanup and make configure script
+# sh bootstrap.sh -a : configure, make and make check
+
 test Makefile && make distclean
 
 rm -r build-aux aux m4

@@ -6,3 +6,6 @@ configure.in
 configure
 /auto*
 /aclocal*
+/src/stamp*.h
+/src/config.h*
+

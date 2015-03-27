@@ -1,5 +1,3 @@
-/*RCS-Head: $Id: tiff2bacon.c,v 1.5 2002/02/06 14:42:26 eichholz Exp $ */
-
 /**
 
 <tiff2bacon.c>
@@ -19,18 +17,16 @@ The program is based on <tiffsplit.c> from Sam Leffler (libtiff).
 
 (c) Marian Eichholz at DuSPAT 15.3.1999, 5.2.2002
 
-Versionen:
-0.19 : 15.03.1999 (startup)
-0.20 : 16.03.1999 : Bitorder-Problem gefixt, BACON-Schmalspurheader.
-0.21 :              Verbosings wieder raus.
-
 */
 
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "config.h"
+#include <tiff.h>
+#include <tiffio.h>
 
 #define	streq(a,b)	(strcmp(a,b) == 0)
 #define	CopyField(tag,v) \
@@ -73,7 +69,7 @@ main(int argc, char* argv[])
 				return (-2);
 			if (!tiffcp(in, out))
 				return (-1);
-			/* TIFFClose */ close (out);
+			/* TIFFClose */ fclose (out);
 		} while (TIFFReadDirectory(in));
 		(void) TIFFClose(in);
 	}
@@ -120,7 +116,7 @@ newfilename(void)
 
 static char achBaconHead[256];
 
-static int
+static void
 prepBaconHead(uint32 w, uint32 l)
 {
 	char achNumber[9],i;
@@ -129,7 +125,6 @@ prepBaconHead(uint32 w, uint32 l)
 	for (i=0; i<4; i++) achBaconHead[197+i]=achNumber[i];
 	sprintf(achNumber,"%04ld",(long)w);
 	for (i=0; i<4; i++) achBaconHead[197+4+i]=achNumber[i];
-	
 }
 
 static int

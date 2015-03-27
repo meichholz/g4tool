@@ -16,17 +16,21 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
 ##CHECK: Is this the way to select all the flags?
-if test "$GCC" = yes
-then
-  CFLAGS="${CFLAGS} ${EXTRA_GCFLAGS}-pipe -Wno-unused -Wbad-function-cast -Wmissing-prototypes -Wstrict-prototypes -Wcast-align -Wcast-qual -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-declarations -Wnested-externs -Wundef -pedantic -fno-common -std=gnu99"
-  # -Wshadow is TODO
-  LDFLAGS="${LDFLAGS} ${EXTRA_GLDFLAGS} -g"
-else
-  CFLAGS="${CFLAGS} ${EXTRA_CFLAGS}"
-  LDFLAGS="${LDFLAGS} ${EXTRA_LDFLAGS}"
-fi
+#if test "$GCC" = yes
+#then
+#  CFLAGS="${CFLAGS} ${EXTRA_GCFLAGS}-pipe -Wno-unused -Wbad-function-cast -Wmissing-prototypes -Wstrict-prototypes -Wcast-align -Wcast-qual -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-declarations -Wnested-externs -Wundef -pedantic -fno-common -std=gnu99"
+#  # -Wshadow is TODO
+#  LDFLAGS="${LDFLAGS} ${EXTRA_GLDFLAGS} -g"
+#else
+#  CFLAGS="${CFLAGS} ${EXTRA_CFLAGS}"
+#  LDFLAGS="${LDFLAGS} ${EXTRA_LDFLAGS}"
+#fi
 
 AC_HEADER_STDC
+
+dnl TODO: make Libtiff optional
+dnl TODO: help string
+
 AH_TEMPLATE([HAVE_LIBTIFF],[Is libtiff available?])
 AC_CHECK_HEADER([tiffio.h],[],[AC_MSG_ERROR([tiffio.h not found])])
 AC_CHECK_LIB([tiff],
