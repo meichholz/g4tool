@@ -1,0 +1,8 @@
+/m4/
+/build-aux/
+Makefile.in
+/config.*
+configure.in
+configure
+/auto*
+/aclocal*
