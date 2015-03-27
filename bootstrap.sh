@@ -1,8 +1,8 @@
 test Makefile && make distclean
 
-rm aux/* m4/*
+rm -r build-aux aux m4
 rm *.tar.gz
-rm -rf g4tool-*/
+rm g4tool-*
 
 for PAT in "*~" stamp-h.in aclocal.m4 Makefile Makefile.in configure "t.*" "tmp.*" "*.bak" ; do
   find . -name "$PAT" -exec rm "{}" \;
